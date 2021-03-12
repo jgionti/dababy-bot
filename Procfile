@@ -1,1 +1,1 @@
-web: python dababybot.py
+worker: python dababybot.py
