@@ -1,1 +1,2 @@
-none
+discord==1.6.0
+lyricsgenius==3.0.0
