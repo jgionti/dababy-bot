@@ -22,11 +22,10 @@ class Roles(commands.Cog):
     # Get the roles the bot should handle
     # Return: List[Role]
     async def get_gaming_roles(self, ctx):
-        NUM_UNTOUCHABLES = 1    # Brazil
+        brazil_role = ctx.guild.get_role(748221820456402965)
         gaming_roles = []
-        for role in ctx.guild.roles:    # 8175... is DaBaby role
-            if role.position < ctx.guild.get_role(817522759037878293).position - NUM_UNTOUCHABLES \
-                and role.position != 0:
+        for role in ctx.guild.roles:    # 7482... is Brazil role
+            if role.position < brazil_role.position and role.position > 0:
                 gaming_roles.append(role)
         return gaming_roles
         

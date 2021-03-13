@@ -29,7 +29,7 @@ class General(commands.Cog):
         async with ctx.channel.typing():
             print("Initializaing phrases...")
             genius = Genius("OVZjDThy2v_vmKZ2DrtBSDBPXFQQ09vCEaL5bp-2AeFAXO0h_Hlg-qUfiiugrT67")
-            songs = genius.search_artist_songs(search_term="DaBaby", artist_id=1162342, per_page=20)["songs"]
+            songs = genius.search_artist_songs(search_term="DaBaby", artist_id=1162342, per_page=30)["songs"]
             phrases_list = []
             for song in songs:
                 lyrics = genius.lyrics(song["id"], remove_section_headers = True)
@@ -102,13 +102,13 @@ class General(commands.Cog):
 
     # Sends "Run" n<=5 times
     @commands.command(help = "Prompts you to run up to 5 times.")
-    async def run(self, ctx, times: int):
-        if times > 5:
+    async def run(self, ctx, times: int = 1):
+        if times > 5 or times < 1:
             await unsuccessful(ctx)
         else:
             for i in range(times):
-                i=i
-                await ctx.send("Run")
+                await ctx.send("Run.")
+                await asyncio.sleep(1-i/5)
 
 
     # States that a random member is suspicious, slightly weighted toward Dante

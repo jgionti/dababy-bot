@@ -5,9 +5,7 @@ import random
 import discord
 from discord.ext import commands
 
-intents = discord.Intents.all()
-
-bot = commands.Bot('$', intents=intents)
+bot = commands.Bot('$', intents=discord.Intents.all())
 extensions = [
     "cogs.general",
     "cogs.roles",
@@ -43,23 +41,29 @@ async def on_ready():
 @bot.event
 async def on_command_error(ctx, error):
     error_type = error.__class__.__name__
-    # MissingRequiredArgument
-    # CommandNotFound
-    # CommandInvokeError
+    
     if error_type == "MemberNotFound":
         await ctx.message.add_reaction("\N{CROSS MARK}")
+        await ctx.message.add_reaction("\N{MAN}")        
     elif error_type == "RoleNotFound":
         await ctx.message.add_reaction("\N{CROSS MARK}")
-    else:
-        await ctx.message.add_reaction("\N{HEAVY EXCLAMATION MARK SYMBOL}")
+        await ctx.message.add_reaction("\N{VIDEO GAME}")
+    elif error_type == "CommandNotFound":
         await ctx.message.add_reaction("\N{BLACK QUESTION MARK ORNAMENT}")
+        await ctx.message.add_reaction("\N{THINKING FACE}")
+    elif error_type == "MissingRequiredArgument":
+        await ctx.message.add_reaction("\N{BLACK QUESTION MARK ORNAMENT}")
+        await ctx.message.add_reaction("\N{PINCHING HAND}")
+    else:
+        await ctx.message.add_reaction("\N{BLACK QUESTION MARK ORNAMENT}")
+        await ctx.message.add_reaction("\N{HEAVY EXCLAMATION MARK SYMBOL}")
 
     raise error
 
-# Bot only takes commands from #bot-test
+# Bot only takes commands from #dababy
 @bot.event
 async def on_message(message):
-    if message.channel.id == 817523273457074217:
+    if message.channel.name == "dababy":
         await bot.process_commands(message)
 
 
