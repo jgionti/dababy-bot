@@ -1,7 +1,5 @@
 import logging
 logging.basicConfig(level=logging.INFO)
-import asyncio
-import random
 import discord
 from discord.ext import commands
 
@@ -24,6 +22,7 @@ async def unsuccessful(ctx):
 # "static" variables:
 bot.token = "ODE3NTEzOTA5NzY1Mjc1Njk5.YEKnKA.q71BQ0XqCLk4uh2Q8ccwk9W26gw"       # Discord token
 bot.phrases = []                                                                # Dababy lines (List[str])
+bot.pogs = {}                                                                   # Map of pogs  (Dict{int:bool})
 
 
 # Prints if successfully logged in
@@ -40,6 +39,7 @@ async def on_ready():
 
 @bot.event
 async def on_command_error(ctx, error):
+    # todo: missing permissions
     error_type = error.__class__.__name__
     
     if error_type == "MemberNotFound":

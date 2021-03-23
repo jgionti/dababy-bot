@@ -25,7 +25,7 @@ class General(commands.Cog):
     # Get the bot phrases using Genius
     # Return: List[str]
     async def init_phrases(self, ctx):
-        await ctx.message.add_reaction("\N{WRITING HAND}")
+        msg = await ctx.send("I'm thinkin! (Loading phrases...)")
         async with ctx.channel.typing():
             print("Initializaing phrases...")
             genius = Genius("OVZjDThy2v_vmKZ2DrtBSDBPXFQQ09vCEaL5bp-2AeFAXO0h_Hlg-qUfiiugrT67")
@@ -38,14 +38,15 @@ class General(commands.Cog):
                     if (temp != "") and (temp.find("\u200a") == -1) and (temp.find("\u205f") == -1) and (temp.find("\u2005") == -1):
                         phrases_list.append(temp)
             phrases_list.append("动态网自由门 天安門 天安门 法輪功 李洪志 Free Tibet 六四天安門事件 The Tiananmen Square protests of 1989 天安門大屠殺 The Tiananmen Square Massacre 反右派鬥爭")
+            phrases_list.append("I hate the antichrist")
         print("Done!")
-        await ctx.message.clear_reactions()
+        await msg.delete()
         return phrases_list
 
     # Get every message from up to 2 weeks ago
     # Return: List[Message]
     async def get_message_cache(self, ctx):
-        await ctx.message.add_reaction("\N{WRITING HAND}")
+        msg = await ctx.send("Lemme look! (Fetching messages...)")
         async with ctx.channel.typing():
             message_cache = []
             for channel in ctx.guild.text_channels:
@@ -55,7 +56,7 @@ class General(commands.Cog):
                     history = await channel.history(after=after).flatten()
                     for message in history:
                         message_cache.append(message)
-        await ctx.message.clear_reactions()
+        await msg.delete()
         return message_cache
 
 
@@ -81,6 +82,39 @@ class General(commands.Cog):
                 online_members.append(mem)
         return online_members
 
+    # Get the pog value for a particular member, then attempt to swap it
+    # Return: bool
+    async def get_pog(self, member: discord.Member):
+        d = self.bot.pogs
+        if member.id not in d:
+            d[member.id] = random.choice([True,False])
+        if random.choice(range(1,100)) <= 25:
+            d[member.id] = not d[member.id]
+        return d[member.id]
+
+
+    # # Constructs/sends a poll based on given instructions for (time) minutes, returning 0-3
+    # # Return: int
+    # async def send_poll(self, ctx, time:float, input_str:str):
+    #     d = {}
+    #     await ctx.message.delete()
+    #     # Deconstruct string
+    #     poll_list = input_str.split()
+    #     if (len(poll_list) < 3):
+    #         raise MissingRequiredArgument("Too few args!")
+    #     if (len(poll_list == 3)):
+    #         # To do: special Y/N emojis
+    #         # otherwise: 1,2,3,4
+    #         # Implement hard cap of 5 entries?
+    #     # Construct embed
+    #     embed = discord.Embed(color=ctx.author.top_role.color, title=(ctx.author.name))#+" wants to call a poll!"))
+    #     embed.description = 
+    #     embed.set_thumbnail(url=ctx.author.avatar_url)
+    #     # Use dictionary
+
+    #     await ctx.send(embed=embed)
+    #     return 1
+
     
     #######################
     #       COMMANDS      #
@@ -93,7 +127,7 @@ class General(commands.Cog):
 
     
     # Sends a random dababy line
-    @commands.command(aliases = ["d"], help = "Sends a random DaBaby line.")
+    @commands.command(aliases = ["d"], help = "Sends a random DaBaby phrase.")
     async def dababy(self, ctx):
         if not self.bot.phrases:
             self.bot.phrases = await self.init_phrases(ctx)
@@ -130,7 +164,7 @@ class General(commands.Cog):
     async def pog(self, ctx, *, target: str):
         converterplus = self.bot.get_cog("ConverterPlus")
         member = await converterplus.lookup_member(ctx, target)
-        is_pog = random.choice([True, False])
+        is_pog = await self.get_pog(member)
         if is_pog:
             await ctx.send(member.name + " is **pog!** Let's go!!!")
         else:
@@ -148,9 +182,14 @@ class General(commands.Cog):
             embed.set_image(url=member.avatar_url_as(format=None, static_format='webp', size=128))
             embed.add_field(name="Top Role", value=member.top_role.name)
             embed.add_field(name="Message Density", value=(str(round(msg_density*100, 2))+"%"))
-            embed.add_field(name="ID", value=str(member.id), inline=False)
+            embed.set_footer(text="ID: "+str(member.id))
             await ctx.send(embed=embed)
 
+
+    # Sends a poll based on time input string, then states the result
+    # @commands.command(aliases = ["p"], help = "")
+    # async def test(self, ctx, time:float=5.0, *, input_str:str=""):
+    #     await self.send_poll(ctx, time, input_str)
 
     
 def setup(bot):

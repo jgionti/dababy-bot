@@ -19,6 +19,11 @@ class Roles(commands.Cog):
     #  HELPER FUNCTIONS   #
     #######################
 
+    # Get the function to help sort get_gaming_roles() with
+    # Return: str
+    def role_sort(self, role: discord.Role):
+        return role.name
+
     # Get the roles the bot should handle
     # Return: List[Role]
     async def get_gaming_roles(self, ctx):
@@ -27,6 +32,8 @@ class Roles(commands.Cog):
         for role in ctx.guild.roles:    # 7482... is Brazil role
             if role.position < brazil_role.position and role.position > 0:
                 gaming_roles.append(role)
+        gaming_roles.reverse()
+        gaming_roles.sort(key=self.role_sort)
         return gaming_roles
         
 
@@ -63,7 +70,9 @@ class Roles(commands.Cog):
 
     # Displays info about a role, similar to user stats
     @commands.command(aliases = ["ri", "rinfo"], help = "Displays info about a particular role.")
-    async def roleinfo(self, ctx, *, target_role: str):
+    async def roleinfo(self, ctx, *, target_role: str = ""):
+        if target_role == "":
+            return await self.rolelist(ctx)
         converterplus = self.bot.get_cog("ConverterPlus")
         role = await converterplus.lookup_role(ctx, target_role)
         mems = ""
@@ -72,8 +81,9 @@ class Roles(commands.Cog):
         mems += role.members[-1].name
         embed = discord.Embed(color=role.color, title="Role Info", description=role.mention)
         embed.add_field(name="Date Created", value=role.created_at.strftime("%m/%d/%Y"))
-        embed.add_field(name="Role ID", value=str(role.id))
+        embed.add_field(name="Color", value=str(role.color))
         embed.add_field(name="Members: "+str(len(role.members)), value=mems, inline=False)
+        embed.set_footer(text="ID: "+str(role.id))
         await ctx.send(embed=embed)
 
     # Displays a list of all gaming roles that may be added/removed
@@ -96,7 +106,7 @@ class Roles(commands.Cog):
 
     # Gives user the Brazil role for some time
     # Admin only, of course
-    @commands.command(aliases = ["br"], help = "Admin only. Sends a member to Brazil for a set amount of time.")
+    @commands.command(aliases = ["b", "br", "brazil"], help = "Admin only. Sends a member to Brazil for a set amount of time.")
     @commands.has_permissions(administrator=True)
     async def brazilfor(self, ctx, time: float, *, target: str):
         converterplus = self.bot.get_cog("ConverterPlus")
