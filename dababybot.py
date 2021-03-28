@@ -75,7 +75,6 @@ async def load(ctx, ext: str):
     bot.load_extension(full_ext)
     await successful(ctx)
 
-
 # Unloads a cog
 @bot.command(help = "Admin only. Unloads a cog.")
 @commands.has_permissions(administrator=True)

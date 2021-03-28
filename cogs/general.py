@@ -31,6 +31,7 @@ class General(commands.Cog):
             genius = Genius("OVZjDThy2v_vmKZ2DrtBSDBPXFQQ09vCEaL5bp-2AeFAXO0h_Hlg-qUfiiugrT67")
             songs = genius.search_artist_songs(search_term="DaBaby", artist_id=1162342, per_page=30)["songs"]
             phrases_list = []
+            print("\tSuccessfully retrieved songs...")
             for song in songs:
                 lyrics = genius.lyrics(song["id"], remove_section_headers = True)
                 temp_list = lyrics.split("\n")
@@ -92,35 +93,12 @@ class General(commands.Cog):
             d[member.id] = not d[member.id]
         return d[member.id]
 
-
-    # # Constructs/sends a poll based on given instructions for (time) minutes, returning 0-3
-    # # Return: int
-    # async def send_poll(self, ctx, time:float, input_str:str):
-    #     d = {}
-    #     await ctx.message.delete()
-    #     # Deconstruct string
-    #     poll_list = input_str.split()
-    #     if (len(poll_list) < 3):
-    #         raise MissingRequiredArgument("Too few args!")
-    #     if (len(poll_list == 3)):
-    #         # To do: special Y/N emojis
-    #         # otherwise: 1,2,3,4
-    #         # Implement hard cap of 5 entries?
-    #     # Construct embed
-    #     embed = discord.Embed(color=ctx.author.top_role.color, title=(ctx.author.name))#+" wants to call a poll!"))
-    #     embed.description = 
-    #     embed.set_thumbnail(url=ctx.author.avatar_url)
-    #     # Use dictionary
-
-    #     await ctx.send(embed=embed)
-    #     return 1
-
     
     #######################
     #       COMMANDS      #
     #######################
 
-    # Sends "pong!"; useful for testing
+    # Sends "pong!"; useful for testing connection
     @commands.command(help = "Simply replies \"pong!\"")
     async def ping(self, ctx):
         await ctx.send("pong!")
@@ -183,13 +161,7 @@ class General(commands.Cog):
             embed.add_field(name="Top Role", value=member.top_role.name)
             embed.add_field(name="Message Density", value=(str(round(msg_density*100, 2))+"%"))
             embed.set_footer(text="ID: "+str(member.id))
-            await ctx.send(embed=embed)
-
-
-    # Sends a poll based on time input string, then states the result
-    # @commands.command(aliases = ["p"], help = "")
-    # async def test(self, ctx, time:float=5.0, *, input_str:str=""):
-    #     await self.send_poll(ctx, time, input_str)
+            await ctx.send(embed=embed)        
 
     
 def setup(bot):

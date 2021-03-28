@@ -1,0 +1,27 @@
+    #######################
+    #       GENERAL       #
+    #######################
+
+# Displays text channels and the last message time
+    @commands.command(aliases = ["tc"], help = "")
+    async def textchannels(self, ctx):
+        embed = discord.Embed(color=ctx.me.color, title=("Text Channel List"))
+        first = second = ""
+        for channel in ctx.guild.text_channels:
+            perm = channel.permissions_for(ctx.me)
+            if perm.read_message_history == True and perm.read_messages == True:
+                lst = await channel.history(limit=1).flatten()
+            if lst:
+                msg = lst[0]
+            else: 
+                msg = None
+            first += channel.mention + '\n'
+            if msg is not None:
+                second += msg.created_at.strftime("%m/%d/%Y, %H:%M:%S") + '\n'
+            else:
+                second += channel.created_at.strftime("%m/%d/%Y, %H:%M:%S") + '*\n'
+        embed.add_field(name="Name", value=first)
+        embed.add_field(name="Last Message Sent", value=second)
+        await ctx.send(embed=embed)
+
+
