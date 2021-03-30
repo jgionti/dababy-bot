@@ -11,14 +11,6 @@ extensions = [
 for ext in extensions:
     bot.load_extension(ext)
 
-# React to message saying operation was successful
-async def successful(ctx):
-    await ctx.message.add_reaction("\N{WHITE HEAVY CHECK MARK}")
-
-# React to message saying operation was NOT successful
-async def unsuccessful(ctx):
-    await ctx.message.add_reaction("\N{CROSS MARK}")
-
 # "static" variables:
 bot.token = "ODE3NTEzOTA5NzY1Mjc1Njk5.YEKnKA.q71BQ0XqCLk4uh2Q8ccwk9W26gw"       # Discord token
 bot.phrases = []                                                                # Dababy lines (List[str])
@@ -73,7 +65,7 @@ async def on_message(message):
 async def load(ctx, ext: str):
     full_ext = "cogs." + ext
     bot.load_extension(full_ext)
-    await successful(ctx)
+    await ctx.message.add_reaction("\N{WHITE HEAVY CHECK MARK}")
 
 # Unloads a cog
 @bot.command(help = "Admin only. Unloads a cog.")
@@ -81,7 +73,7 @@ async def load(ctx, ext: str):
 async def unload(ctx, ext: str):
     full_ext = "cogs." + ext
     bot.unload_extension(full_ext)
-    await successful(ctx)
+    await ctx.message.add_reaction("\N{WHITE HEAVY CHECK MARK}")
 
 # Reloads all cogs
 @bot.command(help = "Admin only. Reloads most commands.")

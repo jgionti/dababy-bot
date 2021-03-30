@@ -5,18 +5,10 @@ import discord
 from discord.ext import commands
 from lyricsgenius import Genius
 
-# React to message saying operation was successful
-async def successful(ctx):
-    await ctx.message.add_reaction("\N{WHITE HEAVY CHECK MARK}")
-
-# React to message saying operation was NOT successful
-async def unsuccessful(ctx):
-    await ctx.message.add_reaction("\N{CROSS MARK}")
-
-
 class General(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
+        self.is_loading_messages = False
 
     #######################
     #  HELPER FUNCTIONS   #
@@ -26,6 +18,7 @@ class General(commands.Cog):
     # Return: List[str]
     async def init_phrases(self, ctx):
         msg = await ctx.send("I'm thinkin! (Loading phrases...)")
+        self.is_loading_messages = True
         async with ctx.channel.typing():
             print("Initializaing phrases...")
             genius = Genius("OVZjDThy2v_vmKZ2DrtBSDBPXFQQ09vCEaL5bp-2AeFAXO0h_Hlg-qUfiiugrT67")
@@ -42,6 +35,7 @@ class General(commands.Cog):
             phrases_list.append("I hate the antichrist")
         print("Done!")
         await msg.delete()
+        self.is_loading_messages = False
         return phrases_list
 
     # Get every message from up to 2 weeks ago
@@ -107,6 +101,8 @@ class General(commands.Cog):
     # Sends a random dababy line
     @commands.command(aliases = ["d"], help = "Sends a random DaBaby phrase.")
     async def dababy(self, ctx):
+        while self.is_loading_messages:
+            await asyncio.sleep(1)
         if not self.bot.phrases:
             self.bot.phrases = await self.init_phrases(ctx)
         await ctx.send(random.choice(self.bot.phrases))
@@ -116,7 +112,7 @@ class General(commands.Cog):
     @commands.command(help = "Prompts you to run up to 5 times.")
     async def run(self, ctx, times: int = 1):
         if times > 5 or times < 1:
-            await unsuccessful(ctx)
+            await ctx.message.add_reaction("\N{CROSS MARK}")
         else:
             for i in range(times):
                 await ctx.send("Run.")

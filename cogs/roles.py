@@ -2,15 +2,6 @@ import asyncio
 import discord
 from discord.ext import commands
 
-# React to message saying operation was successful
-async def successful(ctx):
-    await ctx.message.add_reaction("\N{WHITE HEAVY CHECK MARK}")
-
-# React to message saying operation was NOT successful
-async def unsuccessful(ctx):
-    await ctx.message.add_reaction("\N{CROSS MARK}")
-
-
 class Roles(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
@@ -49,10 +40,10 @@ class Roles(commands.Cog):
         role = await converterplus.lookup_role(ctx, target_role)
         gaming_roles = await self.get_gaming_roles(ctx)
         if role in ctx.author.roles or role not in gaming_roles:
-            await unsuccessful(ctx)
+            await ctx.message.add_reaction("\N{CROSS MARK}")
         else:
             await ctx.author.add_roles(role)
-            await successful(ctx)
+            await ctx.message.add_reaction("\N{WHITE HEAVY CHECK MARK}")
 
     # Removes a role from the user who requested it
     # Uses reactions to determine whether successful
@@ -63,9 +54,9 @@ class Roles(commands.Cog):
         gaming_roles = await self.get_gaming_roles(ctx)
         if role in ctx.author.roles and role in gaming_roles:
             await ctx.author.remove_roles(role)
-            await successful(ctx)
+            await ctx.message.add_reaction("\N{WHITE HEAVY CHECK MARK}")
         else:
-            await unsuccessful(ctx)
+            await ctx.message.add_reaction("\N{CROSS MARK}")
 
 
     # Displays info about a role, similar to user stats
@@ -113,7 +104,7 @@ class Roles(commands.Cog):
         member = await converterplus.lookup_member(ctx, target)
         brazil_role = ctx.guild.get_role(748221820456402965)
         if brazil_role in member.roles:
-            await unsuccessful(ctx)            
+            await ctx.message.add_reaction("\N{CROSS MARK}")
         else:
             await ctx.send("Get the boot. " + member.name + " is going to Brazil!")
             await member.add_roles(brazil_role)
