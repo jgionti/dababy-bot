@@ -5,8 +5,6 @@ import discord
 from discord.ext import commands
 from lyricsgenius import Genius
 
-import os
-
 class General(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
@@ -124,9 +122,6 @@ class General(commands.Cog):
     # States that a random member is suspicious, slightly weighted toward Dante
     @commands.command(help = "States that a random member is suspicious.")
     async def sus(self, ctx):
-        # Temporary to find the current working directory
-        print("Current working directory: {0}".format(os.getcwd()))
-
         members = await self.get_online_members(ctx)
         dante = ctx.guild.get_member(203300119557308417)
         if dante in members:
