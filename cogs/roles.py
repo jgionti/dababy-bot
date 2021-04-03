@@ -106,12 +106,12 @@ class Roles(commands.Cog):
         if brazil_role in member.roles:
             await ctx.message.add_reaction("\N{CROSS MARK}")
         else:
-            await ctx.send("Get the boot. " + member.name + " is going to Brazil!")
+            await ctx.send("Get the boot. " + member.display_name + " is going to Brazil!")
             await member.add_roles(brazil_role)
             await asyncio.sleep(time)
             if brazil_role in member.roles:
                 await member.remove_roles(brazil_role)
-                await ctx.send(member.name + " has been freed from Brazil!")
+                await ctx.send(member.display_name + " has been freed from Brazil!")
 
 def setup(bot):
     bot.add_cog(Roles(bot))

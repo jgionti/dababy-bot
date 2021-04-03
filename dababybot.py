@@ -11,7 +11,8 @@ extensions = [
 for ext in extensions:
     bot.load_extension(ext)
 
-# "static" variables:
+# "static" variables
+# Placed here to prevent overwrite on $reload
 bot.token = "ODE3NTEzOTA5NzY1Mjc1Njk5.YEKnKA.q71BQ0XqCLk4uh2Q8ccwk9W26gw"       # Discord token
 bot.phrases = []                                                                # Dababy lines (List[str])
 bot.pogs = {}                                                                   # Map of pogs  (Dict{int:bool})
@@ -40,6 +41,8 @@ async def on_command_error(ctx, error):
     elif error_type == "RoleNotFound":
         await ctx.message.add_reaction("\N{CROSS MARK}")
         await ctx.message.add_reaction("\N{VIDEO GAME}")
+    elif error_type == "MissingPermissions":
+        await ctx.message.add_reaction("\N{CROSS MARK}")
     elif error_type == "CommandNotFound":
         await ctx.message.add_reaction("\N{BLACK QUESTION MARK ORNAMENT}")
         await ctx.message.add_reaction("\N{THINKING FACE}")

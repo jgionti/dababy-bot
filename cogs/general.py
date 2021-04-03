@@ -128,25 +128,23 @@ class General(commands.Cog):
             members.append(dante)
             members.append(dante)
             members.append(dante)
-        msg = "Ayo! **" + random.choice(members).name + "** is sus!"\
-            + "\nhttps://static.wikia.nocookie.net/jerma-lore/images/e/e3/JermaSus.jpg/revision/latest/smart/width/200/height/200?cb=20201206225609"
-        await ctx.send(msg)
+        msg = "Ayo! **" + random.choice(members).display_name + "** is sus!"
+        await ctx.send(content=msg, file=discord.File("resources\\JermaSus.jpg"))
 
 
     # States whether a given member is poggers
-    @commands.command(help = "States whether a given member is poggers.")
+    @commands.command(help = "States whether a given member is poggers. Type \"me\" to test yourself.")
     async def pog(self, ctx, *, target: str):
         converterplus = self.bot.get_cog("ConverterPlus")
         member = await converterplus.lookup_member(ctx, target)
         is_pog = await self.get_pog(member)
         if is_pog:
-            await ctx.send(member.name + " is **pog!** Let's go!!!")
-        else:
-            await ctx.send(member.name + " is **not pog!** That's disgusting!!!")
+            await ctx.send(member.display_name + " is **pog!** Let's go!!!")
+        else: await ctx.send(member.display_name + " is **not pog!** That's disgusting!!!")
 
 
     # Displays info about a particular member
-    @commands.command(help = "Displays info about a particular server member")
+    @commands.command(help = "Displays info about a particular server member. Type \"me\" to get your own.")
     async def stats(self, ctx, *, target: str):
         async with ctx.channel.typing():
             converterplus = self.bot.get_cog("ConverterPlus")

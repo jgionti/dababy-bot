@@ -15,6 +15,10 @@ class ConverterPlus(commands.Cog):
     # Return: Member
     # Raises: MemberNotFound
     async def lookup_member(self, ctx, target: str):
+        # Check if user asking about themselves
+        if (target == "me"):
+            return ctx.author
+        
         found = False
         # 1. Try the member converter
         member_converter = commands.MemberConverter()
