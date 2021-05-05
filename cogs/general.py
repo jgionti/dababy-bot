@@ -5,10 +5,21 @@ import discord
 from discord.ext import commands
 from lyricsgenius import Genius
 
+#####################
+#      general      #
+#####################
+# Main functionalities
+# Interactions mainly through text
+
 class General(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         self.is_loading_messages = False
+        self.has_persona = False
+        self.persona_id = 0
+        self.has_ping_challenge = False
+        self.ping_map = {}
+        self.ping_winner = None
 
     #######################
     #  HELPER FUNCTIONS   #
@@ -40,34 +51,32 @@ class General(commands.Cog):
 
     # Get every message from up to 2 weeks ago
     # Return: List[Message]
-    async def get_message_cache(self, ctx):
-        msg = await ctx.send("Lemme look! (Fetching messages...)")
+    async def get_message_cache(self, ctx, days: int=14):
         async with ctx.channel.typing():
             message_cache = []
             for channel in ctx.guild.text_channels:
                 perm = channel.permissions_for(ctx.me)
                 if perm.read_message_history == True and perm.read_messages == True:
-                    after = datetime.datetime.today() - datetime.timedelta(days=14)
+                    after = datetime.datetime.today() - datetime.timedelta(days=days)
                     history = await channel.history(after=after).flatten()
                     for message in history:
                         message_cache.append(message)
-        await msg.delete()
         return message_cache
 
-
-    # Get the number of messages a member recently spent across all visible channels
-    # Return: int
-    async def get_message_density(self, ctx, member: discord.Member):
+    # Get the number of messages a member recently sent across all visible channels
+    # Return: (int, int) in the form (count, total)
+    async def get_message_tuple(self, ctx, member: discord.Member):
         count = 0
         total = 0
+        msg = await ctx.send("Lemme look! (Fetching messages...)")
         message_cache = await self.get_message_cache(ctx)
+        await msg.delete()
         for message in message_cache:
             total += 1
             if message.author == member:
                 count += 1
-        return count/total
+        return (count, total)
         
-
     # Get the list of online members for the guild to which the context belongs
     # Return: List[Member]
     async def get_online_members(self, ctx):
@@ -87,7 +96,33 @@ class General(commands.Cog):
             d[member.id] = not d[member.id]
         return d[member.id]
 
-    
+    # Convert the List[Role] of a member to a formatted string
+    # Return: str
+    async def get_role_string(self, member: discord.Member):
+        role_str = ""
+        count = 0
+        role_list = member.roles
+        role_list.reverse()
+        role_list.pop()
+        for role in role_list:
+            role_str += role.mention + " "
+            count += 1
+            if count % 4 == 0:
+                role_str += "\n"
+        return role_str
+
+    # Execute additional operations on_message
+    # Return: void
+    async def on_message_helper(self, message):
+        # Mr. Ping Challenge
+        if self.has_ping_challenge:
+            if message.mention_everyone:
+                if message.author.id in self.ping_map:
+                    self.ping_map[message.author.id] += 1
+                else: self.ping_map[message.author.id] = 1
+                if self.ping_map[message.author.id] == 19:
+                    self.ping_winner = message.author
+
     #######################
     #       COMMANDS      #
     #######################
@@ -101,11 +136,14 @@ class General(commands.Cog):
     # Sends a random dababy line
     @commands.command(aliases = ["d"], help = "Sends a random DaBaby phrase.")
     async def dababy(self, ctx):
-        while self.is_loading_messages:
-            await asyncio.sleep(1)
-        if not self.bot.phrases:
-            self.bot.phrases = await self.init_phrases(ctx)
-        await ctx.send(random.choice(self.bot.phrases))
+        if not self.has_persona:
+            while self.is_loading_messages:
+                await asyncio.sleep(1)
+            if not self.bot.phrases:
+                self.bot.phrases = await self.init_phrases(ctx)
+            await ctx.send(random.choice(self.bot.phrases))
+            return
+        await ctx.send(random.choice(self.bot.persona))
 
 
     # Sends "Run" n<=5 times
@@ -119,7 +157,7 @@ class General(commands.Cog):
                 await asyncio.sleep(1-i/5)
 
 
-    # States that a random member is suspicious, slightly weighted toward Dante
+    # States that a random online member is suspicious, slightly weighted toward Dante
     @commands.command(help = "States that a random member is suspicious.")
     async def sus(self, ctx):
         members = await self.get_online_members(ctx)
@@ -128,8 +166,21 @@ class General(commands.Cog):
             members.append(dante)
             members.append(dante)
             members.append(dante)
-        msg = "Ayo! **" + random.choice(members).display_name + "** is sus!"
-        await ctx.send(content=msg, file=discord.File("resources/JermaSus.jpg"))
+        num = random.choice(range(1,1000))
+        name = random.choice(members).display_name
+        if num <= 10:
+            # Super sus
+            msg = "Yo, emergency meeting! **" + name + "** is **super sus!**"
+            fil = discord.File("resources/SuperSus.jpg")
+        elif num == 11:
+            # Mega sus
+            msg = "Uh, oh no... this can't be right...\n**" + name + "** is **MEGA SUS!**"
+            fil = discord.File("resources/MegaSus.mp4")
+        else:
+            # Normal sus
+            msg = "Ayo! **" + name + "** is sus!"
+            fil = discord.File("resources/JermaSus.jpg")
+        await ctx.send(content=msg, file=fil)
 
 
     # States whether a given member is poggers
@@ -149,14 +200,85 @@ class General(commands.Cog):
         async with ctx.channel.typing():
             converterplus = self.bot.get_cog("ConverterPlus")
             member = await converterplus.lookup_member(ctx, target)
-            msg_density = await self.get_message_density(ctx, member)
+            msg_tuple = await self.get_message_tuple(ctx, member)
+            msg_density = msg_tuple[0]/msg_tuple[1]
+            role_str = await self.get_role_string(member)
             embed = discord.Embed(color = member.top_role.color, title=(member.name+"#"+str(member.discriminator)))
             embed.set_image(url=member.avatar_url_as(format=None, static_format='webp', size=128))
-            embed.add_field(name="Top Role", value=member.top_role.name)
+            embed.add_field(name="Mention", value=member.mention)
+            embed.add_field(name="Recent Messages", value=(str(msg_tuple[0])))
             embed.add_field(name="Message Density", value=(str(round(msg_density*100, 2))+"%"))
+            embed.add_field(name="Roles", value=role_str, inline=False)
             embed.set_footer(text="ID: "+str(member.id))
-            await ctx.send(embed=embed)        
+            await ctx.send(embed=embed)
+
+
+    # Changes pool of messages the bot pulls from in $dababy
+    # 30 second cooldown
+    @commands.command(aliases = ["p"], help = "Changes the pool of messages used in $dababy to those of a particular server member. 30 second cooldown. Use with no args to reset.")
+    @commands.cooldown(1, 30, commands.BucketType.guild)
+    async def persona(self, ctx, *, target: str=""):
+        if target != "":
+            converterplus = self.bot.get_cog("ConverterPlus")
+            member = await converterplus.lookup_member(ctx, target)
+        if target == "" or member == ctx.guild.me:
+            self.has_persona = False
+            await ctx.guild.me.edit(nick="DaBaby")
+            await ctx.message.add_reaction("\N{WHITE HEAVY CHECK MARK}")
+            return
+
+        if member.id == self.persona_id:
+            await ctx.message.add_reaction("\N{CROSS MARK}")
+            return
+
+        msg = await ctx.send("Yeah, I can do that! (Loading messages...)")
+        message_cache = await self.get_message_cache(ctx, 31)
+        phrases_list = []
+        for message in message_cache:
+            if (message.author == member) and (message.content != "") and not message.mentions:
+                phrases_list.append(message.content)
+        
+        self.bot.persona = phrases_list
+        self.has_persona = True
+        await ctx.guild.me.edit(nick=("DaBaby \"" + member.display_name + "\""))
+        await msg.delete()
+        await ctx.message.add_reaction("\N{WHITE HEAVY CHECK MARK}")
 
     
+    # Activates the Mr Ping Challenge
+    # Admin only, definitely
+    @commands.command(hidden=True)
+    @commands.has_permissions(administrator=True)
+    async def mrpingchallenge(self, ctx):
+        # Initialize challenge
+        self.ping_map = {}
+        self.ping_winner == None
+        msg = "The Mr. Ping Challenge has started!"
+        await ctx.send(content=msg, file=discord.File("resources/MrPingChallenge.png"))        
+        self.has_ping_challenge = True
+
+        # Loop while waiting for winner (a user has 19 pings)
+        while self.ping_winner == None:
+            await asyncio.sleep(1)                
+
+        # Print winner and send them to Brazil
+        self.has_ping_challenge = False
+        await ctx.send("Congratulations, " + self.ping_winner.mention + "! You've won the Mr. Ping Challenge! Now for your prize...")
+        await self.bot.get_cog("Roles").brazil(ctx, str(self.ping_winner.id), time=600, reason="You pinged everyone 19 times!")
+
+    
+    # Enables timer mode; prints how long a command took after each execution
+    # Admin only because people shouldn't abuse the extra space it takes up
+    @commands.command(aliases = ["timer"], hidden=True)
+    @commands.has_permissions(administrator=True)
+    async def timermode(self, ctx):
+        self.bot.timer_enabled = not self.bot.timer_enabled
+        if self.bot.timer_enabled:
+            msg = "Timer has been enabled!"
+        else:
+            msg = "Timer has been disabled!"
+        await ctx.send(msg)
+
+
 def setup(bot):
     bot.add_cog(General(bot))

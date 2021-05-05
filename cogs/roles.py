@@ -1,10 +1,17 @@
 import asyncio
 import discord
 from discord.ext import commands
+from cogs import timer
+
+#####################
+#       roles       #
+#####################
+# Autonomous role management
 
 class Roles(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
+        self.brazil_times = {}
 
     #######################
     #  HELPER FUNCTIONS   #
@@ -26,7 +33,7 @@ class Roles(commands.Cog):
         gaming_roles.reverse()
         gaming_roles.sort(key=self.role_sort)
         return gaming_roles
-        
+    
 
     #######################
     #       COMMANDS      #
@@ -95,23 +102,38 @@ class Roles(commands.Cog):
         await ctx.send(embed=embed)
 
 
-    # Gives user the Brazil role for some time
+    # Gives user the Brazil role for some time (in seconds)
     # Admin only, of course
-    @commands.command(aliases = ["b", "br", "brazil"], help = "Admin only. Sends a member to Brazil for a set amount of time.")
+    @commands.command(aliases = ["b"], help = "Admin only. Sends a member to Brazil for a set amount of time (in seconds).")
     @commands.has_permissions(administrator=True)
-    async def brazilfor(self, ctx, time: float, *, target: str):
+    async def brazil(self, ctx, target: str, time: float=60, *, reason: str=""):
+        # Find member and check if they're already in Brazil
         converterplus = self.bot.get_cog("ConverterPlus")
         member = await converterplus.lookup_member(ctx, target)
-        brazil_role = ctx.guild.get_role(748221820456402965)
+        brazil_role = await converterplus.lookup_role(ctx, "Brazil")
         if brazil_role in member.roles:
-            await ctx.message.add_reaction("\N{CROSS MARK}")
-        else:
-            await ctx.send("Get the boot. " + member.display_name + " is going to Brazil!")
-            await member.add_roles(brazil_role)
-            await asyncio.sleep(time)
-            if brazil_role in member.roles:
-                await member.remove_roles(brazil_role)
-                await ctx.send(member.display_name + " has been freed from Brazil!")
+            if member.id in self.brazil_times:
+                msg = member.display_name + " has " + str(timer.get_time_until(self.brazil_times[member.id])) + " seconds left in Brazil."
+            else:
+                msg = member.display_name + " is in Brazil for an indefinite amount of time! Get an admin to free them!"
+            await ctx.send(msg)
+            return
+        
+        # Send user to Brazil
+        brazil_channel = await converterplus.lookup_textchannel(ctx, "brazil")
+        await ctx.send("Get the boot. **" + member.display_name + "** is going to Brazil!")
+        await member.add_roles(brazil_role)
+        msg = "**Welcome to Brazil, " + member.display_name + "!**\n"\
+            + (("__You're here because__: " + reason + '\n') if reason != "" else "")\
+            + "You'll be here for " + str(time) + " seconds! Enjoy!"
+        await brazil_channel.send(msg)
+        self.brazil_times[member.id] = timer.get_time_offset(time)
+        # Wait for time, then release automatically
+        await asyncio.sleep(time)
+        if brazil_role in member.roles:
+            await member.remove_roles(brazil_role)
+            await ctx.send(member.display_name + " has been freed from Brazil!")
+
 
 def setup(bot):
     bot.add_cog(Roles(bot))
