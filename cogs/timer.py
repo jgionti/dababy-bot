@@ -12,7 +12,6 @@ class Timer:
     def __init__(self):
         self._start : float=0.0
         self._end : float=0.0
-    
 
     # Start the timer
     def start(self):
@@ -23,7 +22,7 @@ class Timer:
         self._end = time.perf_counter()
 
     # Get the time recorded (in sec) from start and stop
-    # Returns: float
+    # Return: float
     def get_time(self):
         return self._end - self._start
 

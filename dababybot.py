@@ -2,13 +2,13 @@ import logging
 logging.basicConfig(level=logging.INFO)
 import discord
 from discord.ext import commands
-from cogs import timer
 
 bot = commands.Bot('$', intents=discord.Intents.all())
 extensions = [
     "cogs.general",
     "cogs.roles",
-    "cogs.converterplus"]
+    "cogs.converterplus",
+    "cogs.events"]
 for ext in extensions:
     bot.load_extension(ext)
 
@@ -18,7 +18,6 @@ bot.token = "ODE3NTEzOTA5NzY1Mjc1Njk5.YEKnKA.q71BQ0XqCLk4uh2Q8ccwk9W26gw"       
 bot.phrases = []                                                                # Dababy lines              List[str]
 bot.persona = []                                                                # Persona message cache     List[str]
 bot.pogs = {}                                                                   # Map of id:pogs            Dict{int:bool}
-bot.timer_enabled = False                                                       # Whether Timer is on       bool
 
 # Prints if successfully logged in
 @bot.event
@@ -63,18 +62,8 @@ async def on_command_error(ctx, error):
 # Bot only takes commands from #dababy
 @bot.event
 async def on_message(message):
-    # Misc. operations before command processing
-    await bot.get_cog("General").on_message_helper(message)
-    # Command processing
     if message.channel.name == "dababy":
-        was_enabled = bot.timer_enabled
-        if bot.timer_enabled and message.content[0] == bot.command_prefix:
-            t = timer.Timer()
-            t.start()
         await bot.process_commands(message)
-        if bot.timer_enabled and was_enabled and message.content[0] == bot.command_prefix:
-            t.stop()
-            await message.channel.send("That command took me " + str(round(t.get_time(),4)) + " seconds!")
 
 
 
@@ -84,6 +73,7 @@ async def on_message(message):
 async def load(ctx, ext: str):
     full_ext = "cogs." + ext
     bot.load_extension(full_ext)
+    extensions.append(full_ext)
     await ctx.message.add_reaction("\N{WHITE HEAVY CHECK MARK}")
 
 # Unloads a cog
@@ -92,6 +82,7 @@ async def load(ctx, ext: str):
 async def unload(ctx, ext: str):
     full_ext = "cogs." + ext
     bot.unload_extension(full_ext)
+    extensions.remove(full_ext)
     await ctx.message.add_reaction("\N{WHITE HEAVY CHECK MARK}")
 
 # Reloads all cogs

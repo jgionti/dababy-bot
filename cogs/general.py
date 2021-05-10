@@ -13,13 +13,10 @@ from lyricsgenius import Genius
 
 class General(commands.Cog):
     def __init__(self, bot):
-        self.bot = bot
-        self.is_loading_messages = False
+        self.bot = bot        
         self.has_persona = False
         self.persona_id = 0
-        self.has_ping_challenge = False
-        self.ping_map = {}
-        self.ping_winner = None
+        
 
     #######################
     #  HELPER FUNCTIONS   #
@@ -29,7 +26,6 @@ class General(commands.Cog):
     # Return: List[str]
     async def init_phrases(self, ctx):
         msg = await ctx.send("I'm thinkin! (Loading phrases...)")
-        self.is_loading_messages = True
         async with ctx.channel.typing():
             print("Initializaing phrases...")
             genius = Genius("OVZjDThy2v_vmKZ2DrtBSDBPXFQQ09vCEaL5bp-2AeFAXO0h_Hlg-qUfiiugrT67")
@@ -46,7 +42,6 @@ class General(commands.Cog):
             phrases_list.append("I hate the antichrist")
         print("Done!")
         await msg.delete()
-        self.is_loading_messages = False
         return phrases_list
 
     # Get every message from up to 2 weeks ago
@@ -111,17 +106,6 @@ class General(commands.Cog):
                 role_str += "\n"
         return role_str
 
-    # Execute additional operations on_message
-    # Return: void
-    async def on_message_helper(self, message):
-        # Mr. Ping Challenge
-        if self.has_ping_challenge:
-            if message.mention_everyone:
-                if message.author.id in self.ping_map:
-                    self.ping_map[message.author.id] += 1
-                else: self.ping_map[message.author.id] = 1
-                if self.ping_map[message.author.id] == 19:
-                    self.ping_winner = message.author
 
     #######################
     #       COMMANDS      #
@@ -135,15 +119,14 @@ class General(commands.Cog):
     
     # Sends a random dababy line
     @commands.command(aliases = ["d"], help = "Sends a random DaBaby phrase.")
+    @commands.max_concurrency(1, per=commands.BucketType.guild, wait=True)
     async def dababy(self, ctx):
-        if not self.has_persona:
-            while self.is_loading_messages:
-                await asyncio.sleep(1)
-            if not self.bot.phrases:
-                self.bot.phrases = await self.init_phrases(ctx)
-            await ctx.send(random.choice(self.bot.phrases))
+        if self.has_persona:
+            await ctx.send(random.choice(self.bot.persona))
             return
-        await ctx.send(random.choice(self.bot.persona))
+        if not self.bot.phrases:
+            self.bot.phrases = await self.init_phrases(ctx)
+        await ctx.send(random.choice(self.bot.phrases))
 
 
     # Sends "Run" n<=5 times
@@ -180,6 +163,17 @@ class General(commands.Cog):
             # Normal sus
             msg = "Ayo! **" + name + "** is sus!"
             fil = discord.File("resources/JermaSus.jpg")
+        await ctx.send(content=msg, file=fil)
+
+    # Like the sus command, but forces a super sus, not weighted toward Dante this time
+    # 24 hour cooldown
+    @commands.command(help = "States that a random member is super suspicious. 24 hour cooldown.")
+    @commands.cooldown(1, 86400, commands.BucketType.guild)
+    async def supersus(self, ctx):
+        members = await self.get_online_members(ctx)
+        name = random.choice(members).display_name
+        msg = "Yo, emergency meeting! **" + name + "** is **super sus!**"
+        fil = discord.File("resources/SuperSus.jpg")
         await ctx.send(content=msg, file=fil)
 
 
@@ -245,40 +239,6 @@ class General(commands.Cog):
         await ctx.message.add_reaction("\N{WHITE HEAVY CHECK MARK}")
 
     
-    # Activates the Mr Ping Challenge
-    # Admin only, definitely
-    @commands.command(hidden=True)
-    @commands.has_permissions(administrator=True)
-    async def mrpingchallenge(self, ctx):
-        # Initialize challenge
-        self.ping_map = {}
-        self.ping_winner == None
-        msg = "The Mr. Ping Challenge has started!"
-        await ctx.send(content=msg, file=discord.File("resources/MrPingChallenge.png"))        
-        self.has_ping_challenge = True
-
-        # Loop while waiting for winner (a user has 19 pings)
-        while self.ping_winner == None:
-            await asyncio.sleep(1)                
-
-        # Print winner and send them to Brazil
-        self.has_ping_challenge = False
-        await ctx.send("Congratulations, " + self.ping_winner.mention + "! You've won the Mr. Ping Challenge! Now for your prize...")
-        await self.bot.get_cog("Roles").brazil(ctx, str(self.ping_winner.id), time=600, reason="You pinged everyone 19 times!")
-
-    
-    # Enables timer mode; prints how long a command took after each execution
-    # Admin only because people shouldn't abuse the extra space it takes up
-    @commands.command(aliases = ["timer"], hidden=True)
-    @commands.has_permissions(administrator=True)
-    async def timermode(self, ctx):
-        self.bot.timer_enabled = not self.bot.timer_enabled
-        if self.bot.timer_enabled:
-            msg = "Timer has been enabled!"
-        else:
-            msg = "Timer has been disabled!"
-        await ctx.send(msg)
-
 
 def setup(bot):
     bot.add_cog(General(bot))
