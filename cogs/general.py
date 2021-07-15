@@ -3,7 +3,6 @@ import random
 import datetime
 import discord
 from discord.ext import commands
-from lyricsgenius import Genius
 
 #####################
 #      general      #
@@ -22,26 +21,15 @@ class General(commands.Cog):
     #  HELPER FUNCTIONS   #
     #######################
 
-    # Get the bot phrases using Genius
+    # Get the bot phrases using phrases.txt
     # Return: List[str]
-    async def init_phrases(self, ctx):
-        msg = await ctx.send("I'm thinkin! (Loading phrases...)")
-        async with ctx.channel.typing():
-            print("Initializaing phrases...")
-            genius = Genius("OVZjDThy2v_vmKZ2DrtBSDBPXFQQ09vCEaL5bp-2AeFAXO0h_Hlg-qUfiiugrT67")
-            songs = genius.search_artist_songs(search_term="DaBaby", artist_id=1162342, per_page=30)["songs"]
-            phrases_list = []
-            print("\tSuccessfully retrieved songs...")
-            for song in songs:
-                lyrics = genius.lyrics(song["id"], remove_section_headers = True)
-                temp_list = lyrics.split("\n")
-                for temp in temp_list:
-                    if (temp != "") and (temp.find("\u200a") == -1) and (temp.find("\u205f") == -1) and (temp.find("\u2005") == -1):
-                        phrases_list.append(temp)
-            phrases_list.append("动态网自由门 天安門 天安门 法輪功 李洪志 Free Tibet 六四天安門事件 The Tiananmen Square protests of 1989 天安門大屠殺 The Tiananmen Square Massacre 反右派鬥爭")
-            phrases_list.append("I hate the antichrist")
+    async def init_phrases(self):
+        print("Initializaing phrases...")
+        phrases_list = []
+        file = open("resources/phrases.txt", "r", encoding="utf-8")
+        for line in file:
+            phrases_list.append(line.rstrip())
         print("Done!")
-        await msg.delete()
         return phrases_list
 
     # Get every message from up to 2 weeks ago
@@ -125,7 +113,7 @@ class General(commands.Cog):
             await ctx.send(random.choice(self.bot.persona))
             return
         if not self.bot.phrases:
-            self.bot.phrases = await self.init_phrases(ctx)
+            self.bot.phrases = await self.init_phrases()
         await ctx.send(random.choice(self.bot.phrases))
 
 

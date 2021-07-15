@@ -14,6 +14,7 @@ class Debug(commands.Cog):
         self.timer_enabled = False
         self.timer = timer.Timer()
 
+
     #######################
     #  HELPER FUNCTIONS   #
     #######################
@@ -36,7 +37,7 @@ class Debug(commands.Cog):
     #       COMMANDS      #
     #######################
 
-    # Enables timer mode; prints how long a command took after each execution
+    # Toggles timer mode; prints how long a command took after each execution
     @commands.command(aliases = ["timer"], hidden=True)
     @commands.has_permissions(administrator=True)
     async def timermode(self, ctx):
@@ -50,7 +51,7 @@ class Debug(commands.Cog):
 
     # Displays text channels and the last message time, highlighting those sent later than some amount of days
     @commands.command(aliases = ["cc"], hidden=True)
-    async def channelcheckup(self, ctx, days=14):
+    async def channelcheckup(self, ctx, days=7):
         embed = discord.Embed(color=ctx.me.color, title=("Text Channel List"))
         first = second = ""
         for channel in ctx.guild.text_channels:

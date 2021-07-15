@@ -32,7 +32,16 @@ class Timer:
 def get_time_offset(sec: float=0.0):
     return datetime.datetime.now() + datetime.timedelta(seconds=sec)
 
-# Get the time left until a certain datetime (in seconds)
+# Get the time left (in seconds) until a certain datetime
 # Return: int
-def get_time_until(dt: datetime):
+def get_seconds_until(dt: datetime):
     return (dt - datetime.datetime.now()).seconds
+
+# Get the exact time left until a certain datetime
+# Return: str
+def get_time_until(dt: datetime):
+    return str(datetime.timedelta(dt - datetime.datetime.now()))
+
+
+
+    

@@ -16,7 +16,7 @@ class ConverterPlus(commands.Cog):
     # Raises: MemberNotFound
     async def lookup_member(self, ctx, target: str):
         # Check if user asking about themselves
-        if (target == "me"):
+        if (target.lower() == "me"):
             return ctx.author
         
         found = False
