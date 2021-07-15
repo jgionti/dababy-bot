@@ -27,8 +27,8 @@ class Roles(commands.Cog):
     # Get the roles the bot should handle
     # Return: List[Role]
     async def get_auto_roles(self, ctx):
-        dababy_role = self.bot.get_cog("ConverterPlus").lookup_role(ctx, "DaBaby")
-        brazil_role = self.get_brazil_role(ctx)
+        dababy_role = await self.bot.get_cog("ConverterPlus").lookup_role(ctx, "DaBaby")
+        brazil_role = await self.get_brazil_role(ctx)
         auto_roles = []
         for role in ctx.guild.roles:
             if role.position < dababy_role.position and role.position != brazil_role.position and role.position > 0:
