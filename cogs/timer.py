@@ -40,7 +40,19 @@ def get_seconds_until(dt: datetime):
 # Get the exact time left until a certain datetime
 # Return: str
 def get_time_until(dt: datetime):
-    return str(datetime.timedelta(dt - datetime.datetime.now()))
+    td = (dt - datetime.datetime.now())
+    hours, remainder = divmod(int(td.total_seconds()), 3600)
+    minutes, seconds = divmod(remainder, 60)
+    if td.days > 0:
+        return str(td.days) + "d " + str(hours) + "h " + \
+            str(minutes) + "m " + str(seconds) + "s"
+    elif hours > 0:
+        return str(hours) + "h " + str(minutes) + "m " + str(seconds) + "s"
+    elif minutes > 0:
+        return str(minutes) + "m " + str(seconds) + "s"
+    else:
+        return str(seconds) + "s"
+    
 
 
 
