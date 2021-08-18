@@ -127,7 +127,7 @@ class Events(commands.Cog):
             "This is actually a quite bad jump from before! **(All messages with the exiled letter will be zapped)**"
         msg = msg.replace(self.stolen_char, '')
         msg = msg.replace(self.stolen_char.upper(), '')
-        await ctx.send(content=msg, file=discord.File("resources/StolenLetter.png"))
+        await ctx.send(content=msg, file=discord.File("resources/StolenLetter.PNG"))
 
         # Start event
         self.has_sl_event = True
