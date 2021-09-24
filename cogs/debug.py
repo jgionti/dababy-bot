@@ -75,6 +75,24 @@ class Debug(commands.Cog):
         await ctx.send(embed=embed)
 
 
+    # Deletes all messages in a channel after some msg (inclusive)
+    @commands.command(hidden=True)
+    async def cull(self, ctx, *, msg: str):
+        target = await commands.MessageConverter().convert(ctx, msg)
+        # Ensure that target message is in same channel as context
+        if ctx.message.channel.id != target.channel.id:
+            await ctx.message.add_reaction("\N{CROSS MARK}")
+            return
+
+        msgs = await ctx.channel.history(limit=500, after=target).flatten()
+        msg_chunks = [msgs[x:x+100] for x in range(0, len(msgs), 100)].reverse()
+        if msg_chunks == None:
+            await ctx.channel.delete_messages(msgs)
+        else:
+            for chunk in msg_chunks:
+                await ctx.channel.delete_messages(chunk)
+        await target.delete()
+
 
 def setup(bot):
     bot.add_cog(Debug(bot))

@@ -197,7 +197,7 @@ class General(commands.Cog):
 
     # Changes pool of messages the bot pulls from in $dababy
     # 30 second cooldown
-    @commands.command(aliases = ["p"], help = "Changes the pool of messages used in $dababy to those of a particular server member. 30 second cooldown. Use with no args to reset.")
+    @commands.command(aliases = ["ps"], help = "Changes the pool of messages used in $dababy to those of a particular server member. 30 second cooldown. Use with no args to reset.")
     @commands.cooldown(1, 30, commands.BucketType.guild)
     async def persona(self, ctx, *, target: str=""):
         if target != "":
@@ -227,6 +227,51 @@ class General(commands.Cog):
         await ctx.message.add_reaction("\N{WHITE HEAVY CHECK MARK}")
 
     
+    # Rock paper scissors game
+    @commands.command(help = "Play rock paper scissors with DaBaby!")
+    async def rps(self, ctx, *, p_choice: str):
+        color = discord.Color.light_gray()
+        is_tie = False
+        bot_wins = True
+        my_int = random.randint(1,3) # 1,2,3 = Rock, Paper, Scissors
+        p_int = 0
+        int_to_rps = {0: p_choice+"\N{BUST IN SILHOUETTE}", 1: "Rock\N{ROCK}",\
+            2: "Paper\N{SCROLL}", 3: "Scissors\N{BLACK SCISSORS}"}
+
+        if p_choice.lower() in ["rock", "r", "1"]:
+            p_int = 1
+        elif p_choice.lower() in ["paper", "p", "2"]:
+            p_int = 2
+        elif p_choice.lower() in ["scissors", "s", "3", "scissor"]:
+            p_int = 3
+
+        string = "You chose: **" + int_to_rps[p_int] + "**\n"
+        string += "I chose: **" + int_to_rps[my_int] + "**\n\n"
+        if my_int == 1:
+            if p_int == 1: is_tie = True
+            if p_int == 2: bot_wins = False
+            if p_int == 3: bot_wins = True
+        elif my_int == 2:
+            if p_int == 2: is_tie = True
+            if p_int == 3: bot_wins = False
+            if p_int == 1: bot_wins = True
+        elif my_int == 3:
+            if p_int == 3: is_tie = True
+            if p_int == 1: bot_wins = False
+            if p_int == 2: bot_wins = True
+
+        if is_tie:
+            string += "**It's a tie!**"
+        elif bot_wins:
+            string += "**" + int_to_rps[my_int] + "** beats **" + int_to_rps[p_int] + "**!\nI win! Let's go!"
+            color = discord.Color.red()
+        else:
+            string += "**" + int_to_rps[p_int] + "** beats **" + int_to_rps[my_int]+ "**!\n"\
+                + ctx.author.display_name + " wins!"
+            color = discord.Color.green()
+
+        await ctx.send(embed=discord.Embed(description=string, color=color))
+
 
 def setup(bot):
     bot.add_cog(General(bot))

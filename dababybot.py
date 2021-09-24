@@ -8,7 +8,8 @@ extensions = [
     "cogs.general",
     "cogs.roles",
     "cogs.converterplus",
-    "cogs.events"]
+    "cogs.events",
+    "cogs.voice"]
 for ext in extensions:
     bot.load_extension(ext)
 

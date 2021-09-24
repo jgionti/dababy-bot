@@ -53,7 +53,13 @@ def get_time_until(dt: datetime):
     else:
         return str(seconds) + "s"
     
+# Convert time in seconds to h:m:s or m:s
+# Return: str
+def get_timestr(sec: int=0):
+    hours, remainder = divmod(sec, 3600)
+    minutes, seconds = divmod(remainder, 60)
 
-
-
-    
+    if hours > 0:
+        return str(hours)+":"+str(minutes)+":"+str(seconds)
+    else:
+        return str(minutes)+":"+str(seconds)
