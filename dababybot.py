@@ -2,8 +2,9 @@ import logging
 logging.basicConfig(level=logging.INFO)
 import discord
 from discord.ext import commands
+import asyncio
 
-bot = commands.Bot('$', intents=discord.Intents.all())
+bot: commands.Bot = commands.Bot('$', intents=discord.Intents.all())
 extensions = [
     "cogs.general",
     "cogs.roles",
@@ -30,42 +31,35 @@ async def on_ready():
         await guild.me.edit(nick="DaBaby")
     print("\nLogged in as\n" + bot.user.name + "\n" + str(bot.user.id) + "\n------")
 
-
-# Error reactions
+# Error message display
 @bot.event
 async def on_command_error(ctx, error):
-    error_type = error.__class__.__name__
-    
-    if error_type == "MemberNotFound":
+    msg_sec = 10
+    emoji = "\N{THUMBS UP SIGN}"
+    error_smol = error.__class__.__name__ + ": " + str(error)
+    error_str = ("Uh oh! Error!\n\n" + error_smol + "\n\n"
+                "This error message will be deleted in " + str(msg_sec) + " seconds.\n" +
+                "Or click on the " + emoji + " reaction to keep this message.")
+    msg: discord.Message = await ctx.send(error_str, reference=ctx.message, mention_author=False)
+    await msg.add_reaction(emoji)
+
+    await asyncio.sleep(30)
+
+    if msg.reactions.count(emoji) == 1:
+        await msg.delete()
         await ctx.message.add_reaction("\N{CROSS MARK}")
-        await ctx.message.add_reaction("\N{MAN}")        
-    elif error_type == "RoleNotFound":
-        await ctx.message.add_reaction("\N{CROSS MARK}")
-        await ctx.message.add_reaction("\N{VIDEO GAME}")
-    elif error_type == "MissingPermissions":
-        await ctx.message.add_reaction("\N{CROSS MARK}")
-    elif error_type == "CommandNotFound":
-        await ctx.message.add_reaction("\N{BLACK QUESTION MARK ORNAMENT}")
-        await ctx.message.add_reaction("\N{THINKING FACE}")
-    elif error_type == "MissingRequiredArgument":
-        await ctx.message.add_reaction("\N{BLACK QUESTION MARK ORNAMENT}")
-        await ctx.message.add_reaction("\N{PINCHING HAND}")
-    elif error_type == "CommandOnCooldown":
-        await ctx.message.add_reaction("\N{CROSS MARK}")
-        await ctx.message.add_reaction("\N{STOPWATCH}")
     else:
-        await ctx.message.add_reaction("\N{BLACK QUESTION MARK ORNAMENT}")
-        await ctx.message.add_reaction("\N{HEAVY EXCLAMATION MARK SYMBOL}")
+        await msg.clear_reactions()
+        await msg.edit(content="Uh oh! Error! "+error_smol)
 
-    raise error
-
+    if "Debug" in bot.cogs.keys():
+        raise error
 
 # Bot only takes commands from #dababy
 @bot.event
 async def on_message(message):
     if message.channel.name == "dababy":
         await bot.process_commands(message)
-
 
 
 # Loads a cog

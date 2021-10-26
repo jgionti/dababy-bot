@@ -49,15 +49,19 @@ class Roles(commands.Cog):
 
     # Sends target member to Brazil and informs others in #dababy and #brazil
     # Return: void
-    async def send_brazil(self, ctx, member, reason, time):
+    async def send_brazil(self, ctx, member:discord.Member, reason: str, time):
         brazil_role = await self.get_brazil_role(ctx)
         brazil_channel = await self.get_brazil_channel(ctx)
         await ctx.send("Get the boot. **" + member.display_name + "** is going to Brazil!")
         await member.add_roles(brazil_role)
-        msg = "**Welcome to Brazil, " + member.display_name + "!**\n"\
-            + (("__You're here because__: " + reason + '\n') if reason != "" else "")\
-            + "You'll be here for " + str(time) + " seconds! Enjoy!"
-        await brazil_channel.send(msg)
+        embed = discord.Embed(title = "**Welcome to Brazil, " + member.display_name + "!**",
+                color = member.top_role.color)
+        if reason != "":
+            embed.add_field(name="You're here because...", value=reason)
+        msg = ("You'll be here for " + timer.get_timestr(time, False) + "!\n\n"
+               + "That's " + timer.get_time_offset(time).strftime("%m/%d/%Y, %H:%M:%S") + "! Enjoy!")
+        embed.add_field(name="Your sentence...", value=msg, inline=False)
+        await brazil_channel.send(embed=embed)
 
     # Remove a member from Brazil and inform others in #dababy and #brazil
     async def remove_brazil(self, ctx, member):
