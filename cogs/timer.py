@@ -53,13 +53,23 @@ def get_time_until(dt: datetime):
     else:
         return str(seconds) + "s"
     
-# Convert time in seconds to h:m:s or m:s
+# Convert time in seconds to timestamp (h:m:s) or readable (h, min, s)
 # Return: str
-def get_timestr(sec: int=0):
+def get_timestr(sec: int=0, is_ts: bool=True):
     hours, remainder = divmod(sec, 3600)
     minutes, seconds = divmod(remainder, 60)
+    hours = int(hours)
+    minutes = int(minutes)
+    seconds = int(seconds)
 
-    if hours > 0:
-        return str(hours)+":"+str(minutes)+":"+str(seconds)
+    if is_ts:
+        if hours > 0:
+            return str(hours)+":"+str(minutes)+":"+str(seconds)
+        elif minutes > 0:
+            return str(minutes)+":"+str(seconds)
     else:
-        return str(minutes)+":"+str(seconds)
+        if hours > 0:
+            return str(hours)+"h "+str(minutes)+"m "+str(seconds)+"s"
+        elif minutes > 0:
+            return str(minutes)+"m "+str(seconds)+"s"
+    

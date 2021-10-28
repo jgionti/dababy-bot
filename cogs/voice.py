@@ -45,7 +45,7 @@ class Voice(commands.Cog):
         if len(self.q) > 0:
             info = self.q.pop(0)
             source = info['formats'][0]['url']
-            ctx.voice_client.play(discord.FFmpegPCMAudio(source), after=lambda e: self.play_next(ctx))
+            ctx.voice_client.play(discord.FFmpegPCMAudio(source), after=self.play_next(ctx))
             self.np = info
         else:
             # Disconnect after some time
@@ -67,8 +67,6 @@ class Voice(commands.Cog):
     # Return: str
     def hyperlink(self, song_info):
         return "["+song_info["title"]+"]" + "("+song_info["webpage_url"]+")"
-
-
 
 
     #######################
@@ -186,7 +184,7 @@ class Voice(commands.Cog):
 
 
     # Pause the current song being played
-    @commands.command(help = "Pause the current song being played.")
+    @commands.command(help = "Pause the song currently being played.")
     async def pause(self, ctx):
         if ctx.voice_client.is_playing():
             ctx.voice_client.pause()
@@ -194,7 +192,7 @@ class Voice(commands.Cog):
 
 
     # Resume the current song being paused
-    @commands.command(help = "Resume the current song being paused.")
+    @commands.command(help = "Resume the song currently being paused.")
     async def resume(self, ctx):
         if ctx.voice_client.is_paused:
             ctx.voice_client.resume()

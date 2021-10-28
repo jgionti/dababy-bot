@@ -15,7 +15,6 @@ class General(commands.Cog):
         self.bot = bot        
         self.has_persona = False
         self.persona_id = 0
-        
 
     #######################
     #  HELPER FUNCTIONS   #
@@ -196,9 +195,9 @@ class General(commands.Cog):
 
 
     # Changes pool of messages the bot pulls from in $dababy
-    # 30 second cooldown
+    # 20 second cooldown
     @commands.command(aliases = ["ps"], help = "Changes the pool of messages used in $dababy to those of a particular server member. 30 second cooldown. Use with no args to reset.")
-    @commands.cooldown(1, 30, commands.BucketType.guild)
+    @commands.cooldown(1, 15, commands.BucketType.guild)
     async def persona(self, ctx, *, target: str=""):
         if target != "":
             converterplus = self.bot.get_cog("ConverterPlus")
@@ -247,7 +246,9 @@ class General(commands.Cog):
 
         string = "You chose: **" + int_to_rps[p_int] + "**\n"
         string += "I chose: **" + int_to_rps[my_int] + "**\n\n"
-        if my_int == 1:
+        if p_int == 0:
+            bot_wins = random.choice([True, False])
+        elif my_int == 1:
             if p_int == 1: is_tie = True
             if p_int == 2: bot_wins = False
             if p_int == 3: bot_wins = True
