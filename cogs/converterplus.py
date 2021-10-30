@@ -2,7 +2,7 @@ import discord
 from discord.ext import commands
 
 #####################
-#    counterplus    #
+#   converterplus   #
 #####################
 # Introduces a more lenient Converter
 # Includes case insensitivity and more!

@@ -10,8 +10,9 @@ import time
 # Basic Timer class to measure function performance
 class Timer:
     def __init__(self):
-        self._start : float=0.0
-        self._end : float=0.0
+        self._start: float = 0.0
+        self._end: float = 0.0
+        self._stored: float = 0.0
 
     # Start the timer
     def start(self):

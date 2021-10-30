@@ -40,17 +40,19 @@ class Voice(commands.Cog):
 
     # Automatically plays the next song and adjusts the queue accordingly
     # Returns: None
-    def play_next(self, ctx):
+    def play_next(self, ctx: commands.Context):
         self.np = None
         if len(self.q) > 0:
             info = self.q.pop(0)
             source = info['formats'][0]['url']
-            ctx.voice_client.play(discord.FFmpegPCMAudio(source), after=self.play_next(ctx))
+            ctx.voice_client.play(discord.FFmpegPCMAudio(source), after=lambda e: self.play_next(ctx))
             self.np = info
         else:
             # Disconnect after some time
             time.sleep(60)
-            if ctx.voice_client is None or not ctx.voice_client.is_playing():
+            if ctx.voice_client is not None and not ctx.voice_client.is_playing():
+                ctx.voice_client.play(discord.FFmpegPCMAudio("resources/lets-go.mp3"))
+                time.sleep(3.2)
                 asyncio.run_coroutine_threadsafe(self.dc(ctx), self.bot.loop)
 
 
@@ -108,7 +110,6 @@ class Voice(commands.Cog):
         else:
             source = info['formats'][0]['url']
             ctx.voice_client.play(discord.FFmpegPCMAudio(source), after=lambda e: self.play_next(ctx))
-            
             await ctx.send("**Now playing:** \N{MUSICAL NOTE} `"+info["title"]+"`")
             self.np = info
 

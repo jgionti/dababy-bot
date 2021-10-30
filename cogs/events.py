@@ -1,6 +1,7 @@
 import asyncio
 import discord
 from discord.ext import commands
+import re
 
 #####################
 #      events       #
@@ -27,7 +28,7 @@ class Events(commands.Cog):
 
     # Listener for user messages
     @commands.Cog.listener()
-    async def on_message(self, message):
+    async def on_message(self, message: discord.Message):
         # Mr. Ping Challenge
         if self.has_ping_challenge:
             # If author uses @everyone,
@@ -45,11 +46,12 @@ class Events(commands.Cog):
 
         # Stolen Letter Event
         if self.has_sl_event:
-            if self.stolen_char in message.content.lower() and message.author != message.guild.me:
-                # Add reaction
-                await message.add_reaction("\N{CROSS MARK}")
-                # Delete message after 1 seconds
-                await message.delete(delay=1)
+            if self.stolen_char in message.content.lower() and message.webhook_id == None:
+                webhook: discord.Webhook = await message.channel.create_webhook(name=message.author.name)
+                msg = re.sub(self.stolen_char, "", message.content)
+                await message.delete()
+                await webhook.send(msg, username=message.author.name, avatar_url=message.author.avatar_url)
+                await webhook.delete()
 
 
     #######################
