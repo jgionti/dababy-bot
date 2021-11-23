@@ -1,3 +1,2 @@
 discord.py[voice]==1.7.3
 youtube_dl==2021.6.6
-ifunnyapi==0.0.14

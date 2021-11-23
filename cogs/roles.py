@@ -54,7 +54,7 @@ class Roles(commands.Cog):
         brazil_channel = await self.get_brazil_channel(ctx)
         await ctx.send("Get the boot. **" + member.display_name + "** is going to Brazil!")
         await member.add_roles(brazil_role)
-        embed = discord.Embed(title = "**Welcome to Brazil, " + member.display_name + "!**",
+        embed = discord.Embed(title = "Welcome to Brazil, " + member.display_name + "!",
                 color = member.top_role.color)
         if reason != "":
             embed.add_field(name="You're here because...", value=reason)

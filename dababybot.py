@@ -2,7 +2,6 @@ import logging
 logging.basicConfig(level=logging.INFO)
 import discord
 from discord.ext import commands
-import asyncio
 
 bot: commands.Bot = commands.Bot('$', intents=discord.Intents.all())
 extensions = [
@@ -43,24 +42,25 @@ async def on_command_error(ctx, error):
     msg: discord.Message = await ctx.send(error_str, reference=ctx.message, mention_author=False)
     await msg.add_reaction(emoji)
 
-    await asyncio.sleep(30)
-
-    if msg.reactions.count(emoji) == 1:
-        await msg.delete()
-        await ctx.message.add_reaction("\N{CROSS MARK}")
-    else:
+    def check(reaction, user):
+        return reaction.emoji == emoji and user != ctx.me
+    try: react, user = await bot.wait_for("reaction_add", check=check, timeout=msg_sec)
+    except: react = None
+    
+    if react and react.count > 1:
         await msg.clear_reactions()
         await msg.edit(content="Uh oh! Error! "+error_smol)
+    else:
+        await msg.delete()
+        await ctx.message.add_reaction("\N{CROSS MARK}")
 
-    if "Debug" in bot.cogs.keys():
-        raise error
+    raise error
 
 # Bot only takes commands from #dababy
 @bot.event
 async def on_message(message):
     if message.channel.name == "dababy":
         await bot.process_commands(message)
-
 
 # Loads a cog
 @bot.command(help = "Admin only. Loads a cog.")

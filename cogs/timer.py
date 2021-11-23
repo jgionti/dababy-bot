@@ -10,8 +10,9 @@ import time
 # Basic Timer class to measure function performance
 class Timer:
     def __init__(self):
-        self._start : float=0.0
-        self._end : float=0.0
+        self._start: float = 0.0
+        self._end: float = 0.0
+        self._stored: float = 0.0
 
     # Start the timer
     def start(self):
@@ -65,11 +66,13 @@ def get_timestr(sec: int=0, is_ts: bool=True):
     if is_ts:
         if hours > 0:
             return str(hours)+":"+str(minutes)+":"+str(seconds)
-        elif minutes > 0:
+        else:
             return str(minutes)+":"+str(seconds)
     else:
         if hours > 0:
             return str(hours)+"h "+str(minutes)+"m "+str(seconds)+"s"
         elif minutes > 0:
             return str(minutes)+"m "+str(seconds)+"s"
+        else:
+            return str(seconds)+"s"
     
