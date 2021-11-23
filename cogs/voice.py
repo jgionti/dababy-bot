@@ -22,7 +22,6 @@ class Voice(commands.Cog):
     async def on_command_error(self, ctx):
         await self.dc(ctx)
 
-
     #######################
     #  HELPER FUNCTIONS   #
     #######################
@@ -37,7 +36,6 @@ class Voice(commands.Cog):
         elif ctx.me.voice.channel.id != ctx.author.voice.channel.id:
             await ctx.voice_client.move_to(ctx.author.voice.channel)
 
-
     # Automatically plays the next song and adjusts the queue accordingly
     # Returns: None
     def play_next(self, ctx: commands.Context):
@@ -48,13 +46,15 @@ class Voice(commands.Cog):
             ctx.voice_client.play(discord.FFmpegPCMAudio(source), after=lambda e: self.play_next(ctx))
             self.np = info
         else:
-            # Disconnect after some time
-            time.sleep(60)
+            # Disconnect after some time of inactivity
+            for i in range(30):
+                time.sleep(1)
+                if ctx.voice_client.is_playing():
+                    return
             if ctx.voice_client is not None and not ctx.voice_client.is_playing():
                 ctx.voice_client.play(discord.FFmpegPCMAudio("resources/lets-go.mp3"))
                 time.sleep(3.2)
                 asyncio.run_coroutine_threadsafe(self.dc(ctx), self.bot.loop)
-
 
     # Disconnects from a voice channel (returns whether successful)
     # Return: bool
@@ -63,7 +63,6 @@ class Voice(commands.Cog):
             await ctx.voice_client.disconnect()
             return True
         return False
-
 
     # Generates a Discord-formatted hyperlink for a particular song
     # Return: str
@@ -137,7 +136,6 @@ class Voice(commands.Cog):
         else:
             await ctx.send("I'm not playing anything right now, bozo! \N{CLOWN FACE}")
 
-
     # Clears the queue
     @commands.command(aliases = ["c"], help = "Clears the queue.")
     async def clear(self, ctx):
@@ -146,7 +144,6 @@ class Voice(commands.Cog):
             await ctx.send("**No! More! Queue!** \N{COLLISION SYMBOL} (Queue cleared)")
         else:
             await ctx.send("There is no queue, bozo! \N{CLOWN FACE}")
-
     
     # Sends info about the song currently playing
     @commands.command(aliases = ["np"], help = "Displays info about the currently playing song.")
@@ -163,7 +160,6 @@ class Voice(commands.Cog):
         else:
             await ctx.send("I'm not playing anything right now, bozo! \N{CLOWN FACE}")
 
-
     # Disconnects from current vc if applicable
     @commands.command(aliases = ["dc"], help = "Disconnect from the current voice channel.")
     async def disconnect(self, ctx):
@@ -172,7 +168,6 @@ class Voice(commands.Cog):
             await ctx.send("Disconnected \N{WHITE HEAVY CHECK MARK}")
         else:
             await ctx.send("I'm not in a voice channel right now, bozo! \N{CLOWN FACE}")
-
 
     # Skips to next song in queue
     @commands.command(aliases = ["s","fs"], help = "Skip to the next song in the queue.")
@@ -183,14 +178,12 @@ class Voice(commands.Cog):
         else:
             await ctx.send("I'm not playing anything right now, bozo! \N{CLOWN FACE}")
 
-
     # Pause the current song being played
     @commands.command(help = "Pause the song currently being played.")
     async def pause(self, ctx):
         if ctx.voice_client.is_playing():
             ctx.voice_client.pause()
             await ctx.send("\N{DOUBLE VERTICAL BAR} **Paused!**")
-
 
     # Resume the current song being paused
     @commands.command(help = "Resume the song currently being paused.")

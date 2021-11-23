@@ -62,7 +62,6 @@ async def on_message(message):
     if message.channel.name == "dababy":
         await bot.process_commands(message)
 
-
 # Loads a cog
 @bot.command(help = "Admin only. Loads a cog.")
 @commands.has_permissions(administrator=True)

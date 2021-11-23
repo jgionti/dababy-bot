@@ -22,6 +22,9 @@ class Events(commands.Cog):
         self.has_sl_event = False
         self.stolen_char = 'n'
 
+        # Max is Online Event
+        self.has_max_event = False
+
     #######################
     #  HELPER FUNCTIONS   #
     #######################
@@ -53,6 +56,26 @@ class Events(commands.Cog):
                 await webhook.send(msg, username=message.author.name, avatar_url=message.author.avatar_url)
                 await webhook.delete()
 
+    # Listener for change in member info
+    # Max is Online is DREADFULLY hard coded, will need refactor in future
+    @commands.Cog.listener()
+    async def on_member_update(self, before: discord.Member, after: discord.Member):
+        # Max is Online event
+        if self.has_max_event:
+            # Get Max's info only
+            if before.id == 143524110813757440:
+                if before.guild.id != 730196305124655176:
+                    return
+                channel: discord.TextChannel = before.guild.get_channel(730196305661657223)
+                if before.status != discord.Status.online and after.status == discord.Status.online:
+                    await channel.send("https://tenor.com/view/max-online-dmc-devil-may-cry-dante-gif-21772253")
+                elif before.status != discord.Status.offline and after.status == discord.Status.offline:
+                    await channel.send("https://tenor.com/view/dmc-devil-may-cry-nero-max-max-is-offline-gif-21779492")
+                elif before.status != discord.Status.idle and after.status == discord.Status.idle:
+                    await channel.send("https://cdn.discordapp.com/attachments/290272452427251723/912784098014142504/dmc-max-away.gif")
+                elif before.status != discord.Status.dnd and after.status == discord.Status.dnd:
+                    await channel.send("https://cdn.discordapp.com/attachments/290272452427251723/912784109925982308/dmc-max-dnd.gif")
+
 
     #######################
     #       COMMANDS      #
@@ -67,14 +90,14 @@ class Events(commands.Cog):
         if len(arg.split()) > 1:
             arg = str(arg.split(None, 1)[1])
         else: arg = None
-
         # Parse name
         if name in ["mrpingchallenge", "mpc"]:
             await self.mrpingchallenge(ctx)
         elif name in ["stolenletter", "sl"]:
             await self.stolenletter(ctx) if arg == None else await self.stolenletter(ctx, arg)
+        elif name in ["maxisonline", "max"]:
+            await self.maxisonline(ctx)
         else: await ctx.message.add_reaction("\N{CROSS MARK}")
-
 
     # Reset all current events
     @commands.command(aliases = ["se"], hidden=True)
@@ -82,7 +105,6 @@ class Events(commands.Cog):
     async def stopevents(self, ctx):
         self.__init__(self.bot)
         await ctx.message.add_reaction("\N{WHITE HEAVY CHECK MARK}")
-
 
     # Mr Ping Challenge
     # The first user to ping @everyone 19 times in a row wins.
@@ -108,11 +130,10 @@ class Events(commands.Cog):
         await asyncio.sleep(5)
         await self.bot.get_cog("Roles").brazil(ctx, str(self.ping_winner.id), time=600, reason="You pinged everyone 19 times!")
 
-
     # Stolen Letter Event
     # Automatically deletes any messages (not bot's) that have a certain letter in it
     async def stolenletter(self, ctx, stolen_char: str = 'n'):
-        # Toggle event if already done
+        # Toggle event if active
         if self.has_sl_event:
             self.has_sl_event = False
             await ctx.send("Let's go! The letter \'" + self.stolen_char + "\' has been found again!")
@@ -134,7 +155,18 @@ class Events(commands.Cog):
         # Start event
         self.has_sl_event = True
 
-
+    # Max is Online Event
+    # Sends the appropriate gif every time Cyanide#7815 
+    async def maxisonline(self, ctx):
+        # Toggle event if active
+        if self.has_max_event:
+            self.has_max_event = False
+            await ctx.send("No! More! Max!")
+            return
+        # Send starting message
+        await ctx.send("https://tenor.com/view/tracking-watch-track-stare-stalk-gif-12592927")
+        # Start event
+        self.has_max_event = True
 
 def setup(bot):
     bot.add_cog(Events(bot))

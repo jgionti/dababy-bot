@@ -6,6 +6,8 @@ from discord.ext import commands
 #####################
 # Introduces a more lenient Converter
 # Includes case insensitivity and more!
+#   To quickly use commands from here, write:
+#       self.bot.get_cog("ConverterPlus").func()
 
 class ConverterPlus(commands.Cog):
     def __init__(self, bot):
