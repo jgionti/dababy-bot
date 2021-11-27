@@ -161,7 +161,7 @@ class Voice(commands.Cog):
             await ctx.send("I'm not playing anything right now, bozo! \N{CLOWN FACE}")
 
     # Disconnects from current vc if applicable
-    @commands.command(aliases = ["dc"], help = "Disconnect from the current voice channel.")
+    @commands.command(aliases = ["dc", "die"], help = "Disconnect from the current voice channel.")
     async def disconnect(self, ctx):
         dc_successful = await self.dc(ctx)
         if dc_successful:

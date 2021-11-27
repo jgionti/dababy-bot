@@ -33,7 +33,7 @@ async def on_ready():
 # Error message display
 @bot.event
 async def on_command_error(ctx, error):
-    msg_sec = 10
+    msg_sec = 15
     emoji = "\N{THUMBS UP SIGN}"
     error_smol = error.__class__.__name__ + ": " + str(error)
     error_str = ("Uh oh! Error!\n\n" + error_smol + "\n\n"

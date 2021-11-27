@@ -24,6 +24,9 @@ class Events(commands.Cog):
 
         # Max is Online Event
         self.has_max_event = False
+        self.max_channel = None
+        self.max_member = None
+        self.gif_str = ""
 
     #######################
     #  HELPER FUNCTIONS   #
@@ -56,6 +59,12 @@ class Events(commands.Cog):
                 await webhook.send(msg, username=message.author.name, avatar_url=message.author.avatar_url)
                 await webhook.delete()
 
+        # Max is Online event
+        if self.has_max_event:
+            if message.channel.name == self.max_channel.name:
+                if message.content != self.gif_str:
+                    await message.delete()
+
     # Listener for change in member info
     # Max is Online is DREADFULLY hard coded, will need refactor in future
     @commands.Cog.listener()
@@ -63,19 +72,25 @@ class Events(commands.Cog):
         # Max is Online event
         if self.has_max_event:
             # Get Max's info only
-            if before.id == 143524110813757440:
-                if before.guild.id != 730196305124655176:
-                    return
-                channel: discord.TextChannel = before.guild.get_channel(730196305661657223)
-                if before.status != discord.Status.online and after.status == discord.Status.online:
-                    await channel.send("https://tenor.com/view/max-online-dmc-devil-may-cry-dante-gif-21772253")
-                elif before.status != discord.Status.offline and after.status == discord.Status.offline:
-                    await channel.send("https://tenor.com/view/dmc-devil-may-cry-nero-max-max-is-offline-gif-21779492")
-                elif before.status != discord.Status.idle and after.status == discord.Status.idle:
-                    await channel.send("https://cdn.discordapp.com/attachments/290272452427251723/912784098014142504/dmc-max-away.gif")
-                elif before.status != discord.Status.dnd and after.status == discord.Status.dnd:
-                    await channel.send("https://cdn.discordapp.com/attachments/290272452427251723/912784109925982308/dmc-max-dnd.gif")
+            if before.id == self.max_member.id:
+                if before.guild.id == 730196305124655176:
+                    if (before.status != discord.Status.online and after.status == discord.Status.online)\
+                        or (before.status != discord.Status.offline and after.status == discord.Status.offline)\
+                        or (before.status != discord.Status.idle and after.status == discord.Status.idle)\
+                        or (before.status != discord.Status.dnd and after.status == discord.Status.dnd):
+                        await self.post_status(after)
 
+    # Update self.gif_str and post status of a member to #max
+    async def post_status(self, member: discord.Member):
+        if member.status == discord.Status.online:
+            self.gif_str = "https://tenor.com/view/max-online-dmc-devil-may-cry-dante-gif-21772253"
+        elif member.status == discord.Status.offline:
+            self.gif_str = "https://tenor.com/view/dmc-devil-may-cry-nero-max-max-is-offline-gif-21779492"
+        elif member.status == discord.Status.idle:
+            self.gif_str = "https://cdn.discordapp.com/attachments/290272452427251723/912784098014142504/dmc-max-away.gif"
+        elif member.status == discord.Status.dnd:
+            self.gif_str = "https://cdn.discordapp.com/attachments/290272452427251723/912784109925982308/dmc-max-dnd.gif"
+        await self.max_channel.send(self.gif_str)
 
     #######################
     #       COMMANDS      #
@@ -156,16 +171,30 @@ class Events(commands.Cog):
         self.has_sl_event = True
 
     # Max is Online Event
-    # Sends the appropriate gif every time Cyanide#7815 
+    # Sends the appropriate gif every time Cyanide#7815 changes status
     async def maxisonline(self, ctx):
         # Toggle event if active
         if self.has_max_event:
             self.has_max_event = False
-            await ctx.send("No! More! Max!")
+            await self.max_channel.delete()
+            self.max_channel = None
+            self.max_member = None
+            await ctx.message.add_reaction("\N{SEE-NO-EVIL MONKEY}")
             return
-        # Send starting message
-        await ctx.send("https://tenor.com/view/tracking-watch-track-stare-stalk-gif-12592927")
-        # Start event
+        # Create new #max channel if one doesn't already exist
+        try:
+            self.max_channel: discord.TextChannel = await self.bot.get_cog("ConverterPlus").lookup_textchannel(ctx, "max")
+        except commands.ChannelNotFound:
+            self.max_channel: discord.TextChannel = await ctx.guild.create_text_channel("max", topic="max")
+        # Create Max member objects
+        max_id = 143524110813757440
+        self.max_member: discord.Member = ctx.guild.get_member(max_id)
+        if self.max_member.status == None:
+            self.max_member.status = self.max_member.desktop_status
+        # Start event and post current status
+        await self.post_status(self.max_member)
+        # Send starting reaction
+        await ctx.message.add_reaction("\N{EYES}")
         self.has_max_event = True
 
 def setup(bot):
