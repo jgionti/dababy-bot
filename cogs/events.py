@@ -59,12 +59,6 @@ class Events(commands.Cog):
                 await webhook.send(msg, username=message.author.name, avatar_url=message.author.avatar_url)
                 await webhook.delete()
 
-        # Max is Online event
-        if self.has_max_event:
-            if message.channel.name == self.max_channel.name:
-                if message.content != self.gif_str:
-                    await message.delete()
-
     # Listener for change in member info
     # Max is Online is DREADFULLY hard coded, will need refactor in future
     @commands.Cog.listener()

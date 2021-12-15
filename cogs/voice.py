@@ -2,6 +2,7 @@ import asyncio
 import time
 import youtube_dl
 import discord
+import random
 from discord.ext import commands
 from cogs import timer
 
@@ -52,7 +53,11 @@ class Voice(commands.Cog):
                 if ctx.voice_client.is_playing():
                     return
             if ctx.voice_client is not None and not ctx.voice_client.is_playing():
-                ctx.voice_client.play(discord.FFmpegPCMAudio("resources/lets-go.mp3"))
+                num = random.choice(range(1,100))
+                if num > 1: 
+                    file = "resources/lets-go.mp3"
+                else: file = "resources/among-us.mp3"
+                ctx.voice_client.play(discord.FFmpegPCMAudio(file))
                 time.sleep(3.2)
                 asyncio.run_coroutine_threadsafe(self.dc(ctx), self.bot.loop)
 

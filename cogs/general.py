@@ -136,7 +136,7 @@ class General(commands.Cog):
             members.append(dante)
             members.append(dante)
             members.append(dante)
-        num = random.choice(range(1,1000))
+        num = random.choice(range(1,250))
         name = random.choice(members).display_name
         if num <= 10:
             # Super sus
