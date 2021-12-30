@@ -1,8 +1,10 @@
 import logging
 logging.basicConfig(level=logging.INFO)
+import os
 import discord
 from discord.ext import commands
 
+# Initialize bot and cogs
 bot: commands.Bot = commands.Bot('$', intents=discord.Intents.all())
 extensions = [
     "cogs.general",
@@ -13,12 +15,15 @@ extensions = [
 for ext in extensions:
     bot.load_extension(ext)
 
+# Load data from .env
+token = os.environ.get("BOT_TOKEN")
+
 # "static" variables
 # Placed here to prevent overwrite on $reload
-bot.token = "ODE3NTEzOTA5NzY1Mjc1Njk5.YEKnKA.q71BQ0XqCLk4uh2Q8ccwk9W26gw"       # Discord token             str
-bot.phrases = []                                                                # Dababy lines              List[str]
-bot.persona = []                                                                # Persona message cache     List[str]
-bot.pogs = {}                                                                   # Map of id:pogs            Dict{int:bool}
+bot.token = token   # Discord token             str
+bot.phrases = []    # Dababy lines              List[str]
+bot.persona = []    # Persona message cache     List[str]
+bot.pogs = {}       # Map of id:pogs            Dict{int:bool}
 
 # Prints if successfully logged in
 @bot.event
@@ -33,7 +38,7 @@ async def on_ready():
 # Error message display
 @bot.event
 async def on_command_error(ctx, error):
-    msg_sec = 15
+    msg_sec = 20
     emoji = "\N{THUMBS UP SIGN}"
     error_smol = error.__class__.__name__ + ": " + str(error)
     error_str = ("Uh oh! Error!\n\n" + error_smol + "\n\n"
@@ -89,5 +94,5 @@ async def reload(ctx):
         bot.reload_extension(ext)
     await ctx.message.add_reaction("\N{WHITE HEAVY CHECK MARK}")
 
-
+# Start the bot
 bot.run(bot.token)

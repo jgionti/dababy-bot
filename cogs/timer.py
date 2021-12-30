@@ -13,20 +13,16 @@ class Timer:
         self._start: float = 0.0
         self._end: float = 0.0
         self._stored: float = 0.0
-
     # Start the timer
     def start(self):
         self._start = time.perf_counter()
-
     # Stop the timer
     def stop(self):
         self._end = time.perf_counter()
-
     # Get the time recorded (in sec) from start and stop
     # Return: float
     def get_time(self):
         return self._end - self._start
-
 
 # Get the time offset by seconds
 # Return: datetime

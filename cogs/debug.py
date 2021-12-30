@@ -14,7 +14,6 @@ class Debug(commands.Cog):
         self.timer_enabled = False
         self.timer = timer.Timer()
 
-
     #######################
     #  HELPER FUNCTIONS   #
     #######################
@@ -32,7 +31,6 @@ class Debug(commands.Cog):
             self.timer.stop()
             await ctx.channel.send("That command took me " + str(round(self.timer.get_time(),4)) + " seconds!")
 
-
     #######################
     #       COMMANDS      #
     #######################
@@ -47,7 +45,6 @@ class Debug(commands.Cog):
         else:
             msg = "Timer has been disabled!"
         await ctx.send(msg)
-
 
     # Displays text channels and the last message time, highlighting those sent later than some amount of days
     @commands.command(aliases = ["cc"], hidden=True)
@@ -73,7 +70,6 @@ class Debug(commands.Cog):
         embed.add_field(name="Last Message Sent", value=second)
         embed.set_footer(text="Bolded date means the most recent message was sent "+str(days)+"+ days ago.\n* means a recent message was not found.")
         await ctx.send(embed=embed)
-
 
     # Deletes all messages in a channel after some msg (inclusive)
     @commands.command(hidden=True)
