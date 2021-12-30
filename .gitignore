@@ -1,3 +1,4 @@
 # Ignore all cache files to save space
 **/__pycache__/
 .vscode/
+/.env

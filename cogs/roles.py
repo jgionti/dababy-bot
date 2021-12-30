@@ -14,7 +14,6 @@ class Roles(commands.Cog):
         self.bot = bot
         self.brazil_times = {}
 
-
     #######################
     #  HELPER FUNCTIONS   #
     #######################
@@ -100,7 +99,6 @@ class Roles(commands.Cog):
         else:
             await ctx.message.add_reaction("\N{CROSS MARK}")
 
-
     # Displays info about a role, similar to user stats
     @commands.command(aliases = ["ri", "rinfo"], help = "Displays info about a particular role.")
     async def roleinfo(self, ctx, *, target_role: str = ""):
@@ -136,7 +134,6 @@ class Roles(commands.Cog):
             +"Use $roleinfo <role> for more info on a role")
         await ctx.send(embed=embed)
 
-
     # Gives user the Brazil role for some time (in seconds)
     # Admin only, of course
     @commands.command(aliases = ["b"], help = "Admin only. Sends a member to Brazil for a set amount of time (in seconds).")
@@ -162,8 +159,6 @@ class Roles(commands.Cog):
         # Wait for time, then release automatically
         await asyncio.sleep(time)
         await self.remove_brazil(ctx, member)
-        
-
 
 def setup(bot):
     bot.add_cog(Roles(bot))

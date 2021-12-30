@@ -64,7 +64,6 @@ class ConverterPlus(commands.Cog):
             return member
         raise commands.MemberNotFound(target)
 
-
     # More general algorithm to look for role
     # Return: Role
     # Raises: RoleNotFound
@@ -91,7 +90,6 @@ class ConverterPlus(commands.Cog):
             return role
         raise commands.RoleNotFound(target)
 
-
     # Textchannel converter
     # Return: TextChannel
     # Raises: ChannelNotFound
@@ -100,7 +98,6 @@ class ConverterPlus(commands.Cog):
         converter = commands.TextChannelConverter()
         textchannel = await converter.convert(ctx, target)
         return textchannel
-
 
 def setup(bot):
     bot.add_cog(ConverterPlus(bot))
