@@ -74,7 +74,6 @@ class Voice(commands.Cog):
     def hyperlink(self, song_info):
         return "["+song_info["title"]+"]" + "("+song_info["webpage_url"]+")"
 
-
     #######################
     #       COMMANDS      #
     #######################
@@ -116,7 +115,6 @@ class Voice(commands.Cog):
             ctx.voice_client.play(discord.FFmpegPCMAudio(source), after=lambda e: self.play_next(ctx))
             await ctx.send("**Now playing:** \N{MUSICAL NOTE} `"+info["title"]+"`")
             self.np = info
-
 
     # Sends info about the songs in the queue
     @commands.command(aliases = ["q"], help = "Displays info about the songs in the queue.")
@@ -196,7 +194,6 @@ class Voice(commands.Cog):
         if ctx.voice_client.is_paused:
             ctx.voice_client.resume()
             await ctx.send("\N{BLACK RIGHT-POINTING TRIANGLE} **Resuming!**")
-
 
 def setup(bot):
     bot.add_cog(Voice(bot))

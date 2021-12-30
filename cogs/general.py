@@ -1,4 +1,3 @@
-import asyncio
 import random
 import datetime
 import discord
@@ -93,7 +92,6 @@ class General(commands.Cog):
                 role_str += "\n"
         return role_str
 
-
     #######################
     #       COMMANDS      #
     #######################
@@ -102,7 +100,6 @@ class General(commands.Cog):
     @commands.command(help = "Simply replies \"pong!\"")
     async def ping(self, ctx):
         await ctx.send("pong!")
-
     
     # Sends a random dababy line
     @commands.command(aliases = ["d"], help = "Sends a random DaBaby phrase.")
@@ -114,18 +111,6 @@ class General(commands.Cog):
         if not self.bot.phrases:
             self.bot.phrases = await self.init_phrases()
         await ctx.send(random.choice(self.bot.phrases))
-
-
-    # Sends "Run" n<=5 times
-    @commands.command(help = "Prompts you to run up to 5 times.")
-    async def run(self, ctx, times: int = 1):
-        if times > 5 or times < 1:
-            await ctx.message.add_reaction("\N{CROSS MARK}")
-        else:
-            for i in range(times):
-                await ctx.send("Run.")
-                await asyncio.sleep(1-i/5)
-
 
     # States that a random online member is suspicious, slightly weighted toward Dante
     @commands.command(help = "States that a random member is suspicious.")
@@ -163,7 +148,6 @@ class General(commands.Cog):
         fil = discord.File("resources/SuperSus.jpg")
         await ctx.send(content=msg, file=fil)
 
-
     # States whether a given member is poggers
     @commands.command(help = "States whether a given member is poggers. Type \"me\" to test yourself.")
     async def pog(self, ctx, *, target: str):
@@ -173,7 +157,6 @@ class General(commands.Cog):
         if is_pog:
             await ctx.send(member.display_name + " is **pog!** Let's go!!!")
         else: await ctx.send(member.display_name + " is **not pog!** That's disgusting!!!")
-
 
     # Displays info about a particular member
     @commands.command(help = "Displays info about a particular server member. Type \"me\" to get your own.")
@@ -193,9 +176,7 @@ class General(commands.Cog):
             embed.set_footer(text="ID: "+str(member.id))
             await ctx.send(embed=embed)
 
-
     # Changes pool of messages the bot pulls from in $dababy
-    # 20 second cooldown
     @commands.command(aliases = ["ps"], help = "Changes the pool of messages used in $dababy to those of a particular server member. 30 second cooldown. Use with no args to reset.")
     @commands.cooldown(1, 15, commands.BucketType.guild)
     async def persona(self, ctx, *, target: str=""):
@@ -224,7 +205,6 @@ class General(commands.Cog):
         await ctx.guild.me.edit(nick=("DaBaby \"" + member.display_name + "\""))
         await msg.delete()
         await ctx.message.add_reaction("\N{WHITE HEAVY CHECK MARK}")
-
     
     # Rock paper scissors game
     @commands.command(help = "Play rock paper scissors with DaBaby!")
@@ -272,7 +252,6 @@ class General(commands.Cog):
             color = discord.Color.green()
 
         await ctx.send(embed=discord.Embed(description=string, color=color))
-
 
 def setup(bot):
     bot.add_cog(General(bot))
