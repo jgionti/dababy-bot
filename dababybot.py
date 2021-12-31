@@ -68,31 +68,34 @@ async def on_message(message):
         await bot.process_commands(message)
 
 # Loads a cog
-@bot.command(help = "Admin only. Loads a cog.")
-@commands.has_permissions(administrator=True)
+@bot.slash_command(guild_ids = [730196305124655176])
+@discord.permissions.has_role("Admin")
 async def load(ctx, ext: str):
+    """Loads a cog."""
     full_ext = "cogs." + ext
     bot.load_extension(full_ext)
     extensions.append(full_ext)
-    await ctx.message.add_reaction("\N{WHITE HEAVY CHECK MARK}")
+    await ctx.respond("Loaded "+ext, ephemeral=True)
 
 # Unloads a cog
-@bot.command(help = "Admin only. Unloads a cog.")
-@commands.has_permissions(administrator=True)
+@bot.slash_command(guild_ids = [730196305124655176])
+@discord.permissions.has_role("Admin")
 async def unload(ctx, ext: str):
+    """Unloads a cog."""
     full_ext = "cogs." + ext
     bot.unload_extension(full_ext)
     extensions.remove(full_ext)
-    await ctx.message.add_reaction("\N{WHITE HEAVY CHECK MARK}")
+    await ctx.respond("Unloaded "+ext, ephemeral=True)
 
 # Reloads all cogs
-@bot.command(help = "Admin only. Reloads most commands.")
-@commands.has_permissions(administrator=True)
+@bot.slash_command(guild_ids = [730196305124655176])
+@discord.permissions.has_role("Admin")
 async def reload(ctx):
+    """Reloads most commands."""
     await ctx.guild.me.edit(nick="DaBaby")
     for ext in extensions:
         bot.reload_extension(ext)
-    await ctx.message.add_reaction("\N{WHITE HEAVY CHECK MARK}")
+    await ctx.respond("Reloaded!", ephemeral=True)
 
 # Start the bot
 bot.run(bot.token)

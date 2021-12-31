@@ -49,9 +49,7 @@ class General(commands.Cog):
     async def get_message_tuple(self, ctx, member: discord.Member):
         count = 0
         total = 0
-        msg = await ctx.send("Lemme look! (Fetching messages...)")
         message_cache = await self.get_message_cache(ctx)
-        await msg.delete()
         for message in message_cache:
             total += 1
             if message.author == member:
@@ -96,15 +94,19 @@ class General(commands.Cog):
     #       COMMANDS      #
     #######################
 
-    # Sends "pong!"; useful for testing connection
-    @commands.command(help = "Simply replies \"pong!\"")
+    # Basic command, useful for testing connection
+    @commands.slash_command(guild_ids = [730196305124655176])
     async def ping(self, ctx):
-        await ctx.send("pong!")
+        """Displays the bot's latency."""
+        await ctx.respond("Pong! Latency is " + str(int(self.bot.latency*1000)) + " ms.")
     
     # Sends a random dababy line
-    @commands.command(aliases = ["d"], help = "Sends a random DaBaby phrase.")
-    @commands.max_concurrency(1, per=commands.BucketType.guild, wait=True)
-    async def dababy(self, ctx):
+    @commands.slash_command(guild_ids = [730196305124655176])
+    async def dababy(self, ctx,
+        message: discord.Option(str, "What you want to say to DaBaby", required = False)
+    ):
+        """Sends a random DaBaby phrase."""
+        await ctx.respond("`"+ctx.author.display_name + " said:` " + message)
         if self.has_persona:
             await ctx.send(random.choice(self.bot.persona))
             return
@@ -113,15 +115,16 @@ class General(commands.Cog):
         await ctx.send(random.choice(self.bot.phrases))
 
     # States that a random online member is suspicious, slightly weighted toward Dante
-    @commands.command(help = "States that a random member is suspicious.")
+    @commands.slash_command(guild_ids = [730196305124655176])
     async def sus(self, ctx):
+        """States that a random server member is suspicious."""
         members = await self.get_online_members(ctx)
         dante = ctx.guild.get_member(203300119557308417)
         if dante in members:
             members.append(dante)
             members.append(dante)
             members.append(dante)
-        num = random.choice(range(1,250))
+        num = random.choice(range(1,200))
         name = random.choice(members).display_name
         if num <= 10:
             # Super sus
@@ -135,61 +138,60 @@ class General(commands.Cog):
             # Normal sus
             msg = "Ayo! **" + name + "** is sus!"
             fil = discord.File("resources/JermaSus.jpg")
-        await ctx.send(content=msg, file=fil)
-
-    # Like the sus command, but forces a super sus, not weighted toward Dante this time
-    # 24 hour cooldown
-    @commands.command(help = "States that a random member is super suspicious. 24 hour cooldown.")
-    @commands.cooldown(1, 86400, commands.BucketType.guild)
-    async def supersus(self, ctx):
-        members = await self.get_online_members(ctx)
-        name = random.choice(members).display_name
-        msg = "Yo, emergency meeting! **" + name + "** is **super sus!**"
-        fil = discord.File("resources/SuperSus.jpg")
-        await ctx.send(content=msg, file=fil)
+        await ctx.respond(content=msg, file=fil)
 
     # States whether a given member is poggers
-    @commands.command(help = "States whether a given member is poggers. Type \"me\" to test yourself.")
-    async def pog(self, ctx, *, target: str):
+    @commands.slash_command(guild_ids = [730196305124655176])
+    async def pog(self, ctx, 
+        member: discord.Option(str, "Server member to be judged by DaBaby", required = False, default = "me")
+    ):
+        """States whether a server member is poggers. Leave blank or type \"me\" to test yourself."""
         converterplus = self.bot.get_cog("ConverterPlus")
-        member = await converterplus.lookup_member(ctx, target)
-        is_pog = await self.get_pog(member)
+        mem = await converterplus.lookup_member(ctx, member)
+        is_pog = await self.get_pog(mem)
         if is_pog:
-            await ctx.send(member.display_name + " is **pog!** Let's go!!!")
-        else: await ctx.send(member.display_name + " is **not pog!** That's disgusting!!!")
+            await ctx.respond(mem.display_name + " is **pog!** Let's go!!!")
+        else: await ctx.respond(mem.display_name + " is **not pog!** That's disgusting!!!")
 
     # Displays info about a particular member
-    @commands.command(help = "Displays info about a particular server member. Type \"me\" to get your own.")
-    async def stats(self, ctx, *, target: str):
+    @commands.slash_command(guild_ids = [730196305124655176])
+    async def info(self, ctx, 
+        member: discord.Option(str, "Server member to get info about", required = False, default = "me")
+    ):
+        """Displays info about a server member. Leave blank or type \"me\" to test yourself."""
         async with ctx.channel.typing():
             converterplus = self.bot.get_cog("ConverterPlus")
-            member = await converterplus.lookup_member(ctx, target)
-            msg_tuple = await self.get_message_tuple(ctx, member)
+            mem = await converterplus.lookup_member(ctx, member)
+            interact = await ctx.respond("Lemme look! (Fetching messages...)")
+            msg_tuple = await self.get_message_tuple(ctx, mem)
             msg_density = msg_tuple[0]/msg_tuple[1]
-            role_str = await self.get_role_string(member)
-            embed = discord.Embed(color = member.top_role.color, title=(member.name+"#"+str(member.discriminator)))
-            embed.set_image(url=member.avatar_url_as(format=None, static_format='webp', size=128))
-            embed.add_field(name="Mention", value=member.mention)
+            role_str = await self.get_role_string(mem)
+            embed = discord.Embed(color = mem.top_role.color, title=(mem.name+"#"+str(mem.discriminator)))
+            embed.set_image(url=mem.display_avatar.with_size(128))
+            embed.add_field(name="Mention", value=mem.mention)
             embed.add_field(name="Recent Messages", value=(str(msg_tuple[0])))
             embed.add_field(name="Message Density", value=(str(round(msg_density*100, 2))+"%"))
             embed.add_field(name="Roles", value=role_str, inline=False)
-            embed.set_footer(text="ID: "+str(member.id))
-            await ctx.send(embed=embed)
+            embed.set_footer(text="ID: "+str(mem.id))
+            await interact.edit_original_message(content="", embed=embed)
 
     # Changes pool of messages the bot pulls from in $dababy
-    @commands.command(aliases = ["ps"], help = "Changes the pool of messages used in $dababy to those of a particular server member. 30 second cooldown. Use with no args to reset.")
+    @commands.slash_command(guild_ids = [730196305124655176])
     @commands.cooldown(1, 15, commands.BucketType.guild)
-    async def persona(self, ctx, *, target: str=""):
-        if target != "":
+    async def persona(self, ctx,
+        member: discord.Option(str, "Server member to adopt a persona of", required = False)
+    ):
+        """Changes the pool of messages used in /dababy to those of a server member. Leave argument blank to reset."""
+        if member != "":
             converterplus = self.bot.get_cog("ConverterPlus")
-            member = await converterplus.lookup_member(ctx, target)
-        if target == "" or member == ctx.guild.me:
+            mem = await converterplus.lookup_member(ctx, member)
+        if member == "" or mem == ctx.guild.me:
             self.has_persona = False
             await ctx.guild.me.edit(nick="DaBaby")
             await ctx.message.add_reaction("\N{WHITE HEAVY CHECK MARK}")
             return
 
-        if member.id == self.persona_id:
+        if mem.id == self.persona_id:
             await ctx.message.add_reaction("\N{CROSS MARK}")
             return
 
@@ -197,12 +199,12 @@ class General(commands.Cog):
         message_cache = await self.get_message_cache(ctx, 31)
         phrases_list = []
         for message in message_cache:
-            if (message.author == member) and (message.content != "") and not message.mentions:
+            if (message.author == mem) and (message.content != "") and not message.mentions:
                 phrases_list.append(message.content)
         
         self.bot.persona = phrases_list
         self.has_persona = True
-        await ctx.guild.me.edit(nick=("DaBaby \"" + member.display_name + "\""))
+        await ctx.guild.me.edit(nick=("DaBaby \"" + mem.display_name + "\""))
         await msg.delete()
         await ctx.message.add_reaction("\N{WHITE HEAVY CHECK MARK}")
     
