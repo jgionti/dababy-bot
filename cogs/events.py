@@ -53,10 +53,10 @@ class Events(commands.Cog):
         # Stolen Letter Event
         if self.has_sl_event:
             if self.stolen_char in message.content.lower() and message.webhook_id == None:
-                webhook: discord.Webhook = await message.channel.create_webhook(name=message.author.name)
-                msg = re.sub(self.stolen_char, "", message.content)
+                webhook: discord.Webhook = await message.channel.create_webhook(name=message.author.display_name)
+                msg = re.sub(self.stolen_char, "", message.content, flags = re.I)
                 await message.delete()
-                await webhook.send(msg, username=message.author.name, avatar_url=message.author.avatar_url)
+                await webhook.send(msg, username=message.author.display_name, avatar_url=message.author.avatar_url)
                 await webhook.delete()
 
     # Listener for change in member info
