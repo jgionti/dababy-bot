@@ -5,7 +5,7 @@ import discord
 from discord.ext import commands
 
 # Initialize bot and cogs
-bot: commands.Bot = commands.Bot('$', intents=discord.Intents.all())
+bot: commands.Bot = commands.Bot(commands.when_mentioned_or("$"), intents=discord.Intents.all())
 extensions = [
     "cogs.general",
     "cogs.roles",
@@ -68,7 +68,7 @@ async def on_message(message):
         await bot.process_commands(message)
 
 # Loads a cog
-@bot.slash_command(guild_ids = [730196305124655176])
+#@bot.slash_command(guild_ids = [730196305124655176])
 @discord.permissions.has_role("Admin")
 async def load(ctx, ext: str):
     """Loads a cog."""
@@ -78,7 +78,7 @@ async def load(ctx, ext: str):
     await ctx.respond("Loaded "+ext, ephemeral=True)
 
 # Unloads a cog
-@bot.slash_command(guild_ids = [730196305124655176])
+#@bot.slash_command(guild_ids = [730196305124655176])
 @discord.permissions.has_role("Admin")
 async def unload(ctx, ext: str):
     """Unloads a cog."""
@@ -88,7 +88,7 @@ async def unload(ctx, ext: str):
     await ctx.respond("Unloaded "+ext, ephemeral=True)
 
 # Reloads all cogs
-@bot.slash_command(guild_ids = [730196305124655176])
+#@bot.slash_command(guild_ids = [730196305124655176])
 @discord.permissions.has_role("Admin")
 async def reload(ctx):
     """Reloads most commands."""

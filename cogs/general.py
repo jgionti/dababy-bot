@@ -28,9 +28,9 @@ class General(commands.Cog):
         print("Done!")
         return phrases_list
 
-    # Get every message from up to 2 weeks ago
+    # Get every message from up to 30 days ago
     # Return: List[Message]
-    async def get_message_cache(self, ctx, days: int=14):
+    async def get_message_cache(self, ctx, days: int=30):
         async with ctx.channel.typing():
             message_cache = []
             for channel in ctx.guild.text_channels:
@@ -104,10 +104,17 @@ class General(commands.Cog):
         message: discord.Option(str, "What you want to say to DaBaby", required = False)
     ):
         """Sends a random DaBaby phrase."""
-        await ctx.respond("`"+ctx.author.display_name + " said:` " + message)
+        msg = ""
+        interact = None
+        if message:
+            msg += "`"+ctx.author.display_name + " said:` " + message + "\n\n"
         if not self.bot.phrases:
+            interact = await ctx.respond("Loading...")
             self.bot.phrases = await self.init_phrases()
-        await ctx.send(random.choice(self.bot.phrases))
+        msg += random.choice(self.bot.phrases)
+        if interact is not None:
+            await interact.edit_original_message(content=msg)
+        else: await ctx.respond(msg)
 
     # States that a random online member is suspicious, slightly weighted toward Dante
     @commands.slash_command(guild_ids = [730196305124655176])
