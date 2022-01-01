@@ -11,9 +11,7 @@ from discord.ext import commands
 
 class General(commands.Cog):
     def __init__(self, bot):
-        self.bot = bot        
-        self.has_persona = False
-        self.persona_id = 0
+        self.bot = bot
 
     #######################
     #  HELPER FUNCTIONS   #
@@ -107,9 +105,6 @@ class General(commands.Cog):
     ):
         """Sends a random DaBaby phrase."""
         await ctx.respond("`"+ctx.author.display_name + " said:` " + message)
-        if self.has_persona:
-            await ctx.send(random.choice(self.bot.persona))
-            return
         if not self.bot.phrases:
             self.bot.phrases = await self.init_phrases()
         await ctx.send(random.choice(self.bot.phrases))
@@ -175,55 +170,25 @@ class General(commands.Cog):
             embed.set_footer(text="ID: "+str(mem.id))
             await interact.edit_original_message(content="", embed=embed)
 
-    # Changes pool of messages the bot pulls from in $dababy
-    @commands.slash_command(guild_ids = [730196305124655176])
-    @commands.cooldown(1, 15, commands.BucketType.guild)
-    async def persona(self, ctx,
-        member: discord.Option(str, "Server member to adopt a persona of", required = False)
-    ):
-        """Changes the pool of messages used in /dababy to those of a server member. Leave argument blank to reset."""
-        if member != "":
-            converterplus = self.bot.get_cog("ConverterPlus")
-            mem = await converterplus.lookup_member(ctx, member)
-        if member == "" or mem == ctx.guild.me:
-            self.has_persona = False
-            await ctx.guild.me.edit(nick="DaBaby")
-            await ctx.message.add_reaction("\N{WHITE HEAVY CHECK MARK}")
-            return
-
-        if mem.id == self.persona_id:
-            await ctx.message.add_reaction("\N{CROSS MARK}")
-            return
-
-        msg = await ctx.send("Yeah, I can do that! (Loading messages...)")
-        message_cache = await self.get_message_cache(ctx, 31)
-        phrases_list = []
-        for message in message_cache:
-            if (message.author == mem) and (message.content != "") and not message.mentions:
-                phrases_list.append(message.content)
-        
-        self.bot.persona = phrases_list
-        self.has_persona = True
-        await ctx.guild.me.edit(nick=("DaBaby \"" + mem.display_name + "\""))
-        await msg.delete()
-        await ctx.message.add_reaction("\N{WHITE HEAVY CHECK MARK}")
-    
     # Rock paper scissors game
-    @commands.command(help = "Play rock paper scissors with DaBaby!")
-    async def rps(self, ctx, *, p_choice: str):
+    @commands.slash_command(guild_ids = [730196305124655176])
+    async def rps(self, ctx,
+        choice: discord.Option(str, "", autocomplete=discord.utils.basic_autocomplete(["rock", "paper", "scissors"]))
+    ):
+        """Play rock paper scissors with DaBaby!"""
         color = discord.Color.light_gray()
         is_tie = False
         bot_wins = True
         my_int = random.randint(1,3) # 1,2,3 = Rock, Paper, Scissors
         p_int = 0
-        int_to_rps = {0: p_choice+"\N{BUST IN SILHOUETTE}", 1: "Rock\N{ROCK}",\
+        int_to_rps = {0: choice+"\N{BUST IN SILHOUETTE}", 1: "Rock\N{ROCK}",\
             2: "Paper\N{SCROLL}", 3: "Scissors\N{BLACK SCISSORS}"}
 
-        if p_choice.lower() in ["rock", "r", "1"]:
+        if choice.lower() in ["rock", "r", "1"]:
             p_int = 1
-        elif p_choice.lower() in ["paper", "p", "2"]:
+        elif choice.lower() in ["paper", "p", "2"]:
             p_int = 2
-        elif p_choice.lower() in ["scissors", "s", "3", "scissor"]:
+        elif choice.lower() in ["scissors", "s", "3", "scissor"]:
             p_int = 3
 
         string = "You chose: **" + int_to_rps[p_int] + "**\n"
@@ -253,7 +218,7 @@ class General(commands.Cog):
                 + ctx.author.display_name + " wins!"
             color = discord.Color.green()
 
-        await ctx.send(embed=discord.Embed(description=string, color=color))
+        await ctx.respond(embed=discord.Embed(description=string, color=color))
 
 def setup(bot):
     bot.add_cog(General(bot))
