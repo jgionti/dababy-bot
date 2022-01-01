@@ -174,7 +174,7 @@ class General(commands.Cog):
             embed.add_field(name="Recent Messages", value=(str(msg_tuple[0])))
             embed.add_field(name="Message Density", value=(str(round(msg_density*100, 2))+"%"))
             embed.add_field(name="Roles", value=role_str, inline=False)
-            embed.set_footer(text="ID: "+str(mem.id))
+            embed.set_footer(text="Recent Messages are counted over the past 30 days.")
             await interact.edit_original_message(content="", embed=embed)
 
     # Rock paper scissors game

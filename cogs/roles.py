@@ -51,7 +51,7 @@ class Roles(commands.Cog):
     async def send_brazil(self, ctx, member:discord.Member, reason: str, time):
         brazil_role = await self.get_brazil_role(ctx)
         brazil_channel = await self.get_brazil_channel(ctx)
-        await ctx.send("Get the boot. **" + member.display_name + "** is going to Brazil!")
+        await ctx.respond("Get the boot. **" + member.display_name + "** is going to Brazil!")
         await member.add_roles(brazil_role)
         embed = discord.Embed(title = "Welcome to Brazil, " + member.display_name + "!",
                 color = member.top_role.color)
@@ -69,56 +69,21 @@ class Roles(commands.Cog):
             await member.remove_roles(brazil_role)
             await ctx.send(member.display_name + " has been freed from Brazil!")
 
-    #######################
-    #       COMMANDS      #
-    #######################
-
-    # Adds a role to the user who requested it
-    # Uses reactions to determine whether successful
-    @commands.command(aliases = ["ar", "arole"], help = "Adds a role to your account.")
-    async def addrole(self, ctx, *, target_role: str):
-        converterplus = self.bot.get_cog("ConverterPlus")
-        role = await converterplus.lookup_role(ctx, target_role)
-        auto_roles = await self.get_auto_roles(ctx)
-        if role in ctx.author.roles or role not in auto_roles:
-            await ctx.message.add_reaction("\N{CROSS MARK}")
-        else:
-            await ctx.author.add_roles(role)
-            await ctx.message.add_reaction("\N{WHITE HEAVY CHECK MARK}")
-
-    # Removes a role from the user who requested it
-    # Uses reactions to determine whether successful
-    @commands.command(aliases = ["rr", "rrole"], help = "Removes a role from your account.")
-    async def removerole(self, ctx, *, target_role: str):
-        converterplus = self.bot.get_cog("ConverterPlus")
-        role = await converterplus.lookup_role(ctx, target_role)
-        auto_roles = await self.get_auto_roles(ctx)
-        if role in ctx.author.roles and role in auto_roles:
-            await ctx.author.remove_roles(role)
-            await ctx.message.add_reaction("\N{WHITE HEAVY CHECK MARK}")
-        else:
-            await ctx.message.add_reaction("\N{CROSS MARK}")
-
-    # Displays info about a role, similar to user stats
-    @commands.command(aliases = ["ri", "rinfo"], help = "Displays info about a particular role.")
-    async def roleinfo(self, ctx, *, target_role: str = ""):
-        if target_role == "":
-            return await self.rolelist(ctx)
-        converterplus = self.bot.get_cog("ConverterPlus")
-        role = await converterplus.lookup_role(ctx, target_role)
+    # Creates the embed for role info
+    # Return: Embed
+    @staticmethod
+    async def create_role_embed(role):
         mems = ""
         for mem in role.members[:-1]:
-            mems += mem.name + ", "
-        mems += role.members[-1].name
+            mems += mem.mention + ", "
+        mems += role.members[-1].mention
         embed = discord.Embed(color=role.color, title="Role Info", description=role.mention)
         embed.add_field(name="Date Created", value=role.created_at.strftime("%m/%d/%Y"))
         embed.add_field(name="Color", value=str(role.color))
         embed.add_field(name="Members: "+str(len(role.members)), value=mems, inline=False)
-        embed.set_footer(text="ID: "+str(role.id))
-        await ctx.send(embed=embed)
+        return embed
 
     # Displays a list of all roles that may be added/removed
-    @commands.command(aliases = ["rl", "rlist"], help = "Displays all roles that Dababy can add/remove.")
     async def rolelist(self, ctx):
         role_list = await self.get_auto_roles(ctx)
         role_str = ""
@@ -129,16 +94,77 @@ class Roles(commands.Cog):
         embed = discord.Embed(color=ctx.me.color, title="Role List")
         embed.add_field(name="Role", value=role_str)
         embed.add_field(name="Members", value=mem_count_str)
-        embed.set_footer(text="Use $addrole <role> to add a role\n"\
-            +"Use $removerole <role> to remove a role\n"\
-            +"Use $roleinfo <role> for more info on a role")
-        await ctx.send(embed=embed)
+        embed.set_footer(text="Use /role <role> to add/remove a role.")
+        await ctx.respond(embed=embed)
+
+    #######################
+    #       COMMANDS      #
+    #######################
+
+    # View for /role buttons
+    class RoleView(discord.ui.View):
+        def __init__(self, role, allowed_roles):
+            super().__init__()
+            self.role = role
+            self.message = None
+            if role not in allowed_roles:
+                self.clear_items()
+                self.add_item(discord.ui.Button(label="This role cannot be added using the bot.", disabled=True, emoji="❌"))
+                self.stop()
+
+        async def on_timeout(self):
+            self.clear_items()
+            self.add_item(discord.ui.Button(label="Timed out! Use /role to get or remove this role.", disabled=True, emoji="⏰"))
+            await self.update()
+
+        async def update(self):
+            embed = await Roles.create_role_embed(self.role)
+            await self.message.edit(embed=embed,view=self)
+
+        @discord.ui.button(label="Get role!", style=discord.ButtonStyle.green, emoji="🤩")
+        async def add_role(self, button: discord.ui.Button, interaction: discord.Interaction):
+            response = ""
+            if self.role not in interaction.user.roles:
+                await interaction.user.add_roles(self.role)
+                response = "✅ Added "+self.role.mention+"!"
+            else: response = "❌ You already have "+self.role.mention+"!"
+            await interaction.response.send_message(response, ephemeral=True)
+            await self.update()
+
+        @discord.ui.button(label="Remove role!", style=discord.ButtonStyle.red, emoji="💀")
+        async def remove_role(self, button: discord.ui.Button, interaction: discord.Interaction):
+            if self.role in interaction.user.roles:
+                await interaction.user.remove_roles(self.role)
+                response = "💀 Removed "+self.role.mention+"!"
+            else: response = "❌ You don't have "+self.role.mention+"!"
+            await interaction.response.send_message(response, ephemeral=True)
+            await self.update()
+
+    # Displays info about a role and the buttons to do it
+    @commands.slash_command(guild_ids = [730196305124655176])
+    async def role(self, ctx,
+        role: discord.Option(str, "Role to view info about", required = False, default = "")
+    ):
+        """Get info on a role and add/remove that role. Leave blank to see a list of roles."""
+        if role == "":
+            await self.rolelist(ctx)
+            return
+        converterplus = self.bot.get_cog("ConverterPlus")
+        rol = await converterplus.lookup_role(ctx, role)
+        embed = await self.create_role_embed(rol)
+        view = self.RoleView(rol, await self.get_auto_roles(ctx))
+        intr: discord.Interaction = await ctx.respond(embed=embed, view=view)
+        view.message = await intr.original_message()
 
     # Gives user the Brazil role for some time (in seconds)
-    # Admin only, of course
-    @commands.command(aliases = ["b"], help = "Admin only. Sends a member to Brazil for a set amount of time (in seconds).")
-    @commands.has_permissions(administrator=True)
-    async def brazil(self, ctx, target: str, time: float=60, *, reason: str=""):
+    @commands.slash_command(guild_ids = [730196305124655176])
+    @discord.permissions.has_role("Admin")
+    async def brazil(self, ctx,
+        target: discord.Option(str, "Server member to send to Brazil"),
+        time: discord.Option(float, "How long to keep the member in Brazil (in seconds)", required = False, default = 60),
+        reason: discord.Option(str, "Reason for sending member to Brazil", required = False, default = "")
+    ):
+        """Send a server member to Brazil for some time."""
         # Find member and check if they're already in Brazil
         converterplus = self.bot.get_cog("ConverterPlus")
         member = await converterplus.lookup_member(ctx, target)
@@ -146,10 +172,10 @@ class Roles(commands.Cog):
         if brazil_role in member.roles:
             if member.id in self.brazil_times:
                 msg = member.display_name + " has " + timer.get_time_until(self.brazil_times[member.id]) + " left in Brazil."
-                await ctx.send(msg)
+                await ctx.respond(msg)
             else:
                 msg = member.display_name + " is in Brazil but shouldn't be! I'll just..."
-                await ctx.send(msg)
+                await ctx.respond(msg)
                 await self.remove_brazil(ctx, member)
             return
         

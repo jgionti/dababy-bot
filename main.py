@@ -1,5 +1,3 @@
-import logging
-logging.basicConfig(level=logging.INFO)
 import os
 import discord
 from discord.ext import commands
@@ -36,7 +34,7 @@ async def on_ready():
     print("\nLogged in as\n" + bot.user.name + "\n" + str(bot.user.id) + "\n------")
 
 # Error message display
-@bot.event
+#@bot.event
 async def on_command_error(ctx, error):
     msg_sec = 20
     emoji = "\N{THUMBS UP SIGN}"
@@ -62,10 +60,24 @@ async def on_command_error(ctx, error):
     raise error
 
 # Bot only takes commands from #dababy
-@bot.event
+#@bot.event
 async def on_message(message):
     if message.channel.name == "dababy":
         await bot.process_commands(message)
+
+@bot.event
+async def on_application_command_error(ctx: discord.ApplicationContext, error: Exception):
+    error_smol = str(error)
+    await ctx.respond("Uh oh! Error!\n"+error_smol, delete_after=5)
+    raise error
+
+@bot.event
+async def on_interaction(interaction: discord.Interaction):
+    if interaction.channel.name == "dababy":
+        await bot.process_application_commands(interaction)
+    else:
+        chn = await commands.TextChannelConverter().convert(await bot.get_application_context(interaction), "dababy")
+        await interaction.response.send_message("❌ Use commands in"+chn.mention+"!", ephemeral=True)
 
 # Loads a cog
 #@bot.slash_command(guild_ids = [730196305124655176])
