@@ -20,8 +20,8 @@ class Voice(commands.Cog):
 
     # Disconnect on error
     @commands.Cog.listener()
-    async def on_command_error(self, ctx):
-        await self.dc(ctx)
+    async def on_application_command_error(self, ctx):
+        await self.disconnect(ctx)
 
     #######################
     #  HELPER FUNCTIONS   #
@@ -31,8 +31,8 @@ class Voice(commands.Cog):
     # Return: None
     async def join(self, ctx):
         # Check if bot is connected to any vc
-        if not ctx.voice_client:
-            await ctx.author.voice.channel.connect(reconnect=False)
+        if ctx.voice_client is None:
+            await ctx.author.voice.channel.connect()
         # Check if bot is called to different vc
         elif ctx.me.voice.channel.id != ctx.author.voice.channel.id:
             await ctx.voice_client.move_to(ctx.author.voice.channel)
@@ -50,7 +50,7 @@ class Voice(commands.Cog):
             # Disconnect after some time of inactivity
             for i in range(30):
                 time.sleep(1)
-                if ctx.voice_client.is_playing():
+                if ctx.voice_client is not None and ctx.voice_client.is_playing():
                     return
             if ctx.voice_client is not None and not ctx.voice_client.is_playing():
                 num = random.choice(range(1,100))
@@ -59,13 +59,22 @@ class Voice(commands.Cog):
                 else: file = "resources/among-us.mp3"
                 ctx.voice_client.play(discord.FFmpegPCMAudio(file))
                 time.sleep(3.2)
-                asyncio.run_coroutine_threadsafe(self.dc(ctx), self.bot.loop)
+                asyncio.run_coroutine_threadsafe(self.disconnect(ctx), self.bot.loop)
 
     # Disconnects from a voice channel (returns whether successful)
     # Return: bool
-    async def dc(self, ctx):
+    async def disconnect(self, ctx):
         if ctx.voice_client and ctx.voice_client.is_connected:
             await ctx.voice_client.disconnect()
+            return True
+        return False
+
+    # Skip the currently playing audio (returns whether successful)
+    # Return: bool
+    @staticmethod
+    async def _skip(ctx):
+        if ctx.voice_client.is_playing():
+            ctx.voice_client.stop()
             return True
         return False
 
@@ -78,16 +87,39 @@ class Voice(commands.Cog):
     #       COMMANDS      #
     #######################
 
+    class QueueView(discord.ui.View):
+        def __init__(self, ctx):
+            super().__init__()
+            self.ctx = ctx
+
+        async def on_timeout(self):
+            self.clear_items()
+            self.add_item(discord.ui.Button(label="Timed out! Use /queue to bring up radio controls.", disabled=True, emoji="⏰"))
+
+        async def update(self):
+            pass
+            # TODO: update queue embed
+
+        @discord.ui.button(label="Skip", style=discord.ButtonStyle.green, emoji="⏩")
+        async def skip(self, button: discord.ui.Button, interaction: discord.Interaction):
+            skipped = await Voice._skip(self.ctx)
+            if skipped:
+                await interaction.response.send_message("\N{BLACK RIGHT-POINTING DOUBLE TRIANGLE} **Skipped!**")
+            else:
+                await interaction.response.send_message("I'm not playing anything right now, bozo! \N{CLOWN FACE}")
+
     # Queues up and plays a YouTube video (by URL or search)
-    @commands.command(aliases = ["p"], help = "Add a video to the queue. Supports URL or Youtube search.")
-    async def play(self, ctx, *, arg: str):
+    @commands.slash_command(guild_ids = [730196305124655176])
+    async def play(self, ctx,
+        url: discord.Option(str, "URL or YouTube search term of the audio to queue up and play.")
+    ):
+        """Add a video to the queue. Supports URL or YouTube search."""
         # Initial check: only join if author is in a vc
         if ctx.author.voice == None:
-            await ctx.send("Join a voice channel first, bozo! \N{CLOWN FACE}")
+            await ctx.respond("Join a voice channel first, bozo! \N{CLOWN FACE}")
             return
-
         # Begin search
-        await ctx.send("\N{RIGHT-POINTING MAGNIFYING GLASS} **Searching:** `"+arg+"`")
+        intr: discord.Interaction = await ctx.respond("\N{RIGHT-POINTING MAGNIFYING GLASS} **Searching:** `"+url+"`")
         
         ydl_opts = {
             'format': 'bestaudio/best',
@@ -99,27 +131,30 @@ class Voice(commands.Cog):
         ytdl = youtube_dl.YoutubeDL(ydl_opts)
         # Try any url first
         try:
-            info = ytdl.extract_info(arg, download=False)
+            info = ytdl.extract_info(url, download=False)
         # Search YouTube manually if not
         except:
-            info = ytdl.extract_info("ytsearch:"+arg, download=False)["entries"][0]
+            info = ytdl.extract_info("ytsearch:"+url, download=False)["entries"][0]
 
         await self.join(ctx)
         info["requested_by"] = ctx.author
 
         if ctx.voice_client.is_playing():
             self.q.append(info)
-            await ctx.send("**Queued up:** `"+info["title"]+"`")
+            await intr.edit_original_message(content="**Queued up:** `"+info["title"]+"`")
         else:
             source = info['formats'][0]['url']
             ctx.voice_client.play(discord.FFmpegPCMAudio(source), after=lambda e: self.play_next(ctx))
-            await ctx.send("**Now playing:** \N{MUSICAL NOTE} `"+info["title"]+"`")
+            await intr.edit_original_message(content="**Now playing:** \N{MUSICAL NOTE} `"+info["title"]+"`")
             self.np = info
 
     # Sends info about the songs in the queue
-    @commands.command(aliases = ["q"], help = "Displays info about the songs in the queue.")
+    #@commands.command(aliases = ["q"], help = "Displays info about the songs in the queue.")
+    @commands.slash_command(guild_ids = [730196305124655176])
     async def queue(self, ctx):
+        """Displays info about the songs in the queue."""
         if self.np is not None:
+            intr: discord.Interaction = await ctx.respond("Generating queue...")
             req = self.np["requested_by"]
             queue = "__Now playing__\n"+self.hyperlink(self.np) + \
                 "\n`(" + timer.get_timestr(self.np["duration"]) + ") Requested by "+ req.name+"#"+req.discriminator+ "`\n\n"
@@ -135,9 +170,11 @@ class Voice(commands.Cog):
             embed = discord.Embed(title = "Queue for "+ctx.guild.name,
                 description = queue,
                 color = ctx.me.color)
-            await ctx.send(embed=embed)
+            embed.set_thumbnail(url=self.np["thumbnail"])
+            view = self.QueueView(ctx)
+            await intr.edit_original_message(content="", embed=embed)
         else:
-            await ctx.send("I'm not playing anything right now, bozo! \N{CLOWN FACE}")
+            await ctx.respond("I'm not playing anything right now, bozo! \N{CLOWN FACE}")
 
     # Clears the queue
     @commands.command(aliases = ["c"], help = "Clears the queue.")
@@ -164,22 +201,24 @@ class Voice(commands.Cog):
             await ctx.send("I'm not playing anything right now, bozo! \N{CLOWN FACE}")
 
     # Disconnects from current vc if applicable
-    @commands.command(aliases = ["dc", "die"], help = "Disconnect from the current voice channel.")
-    async def disconnect(self, ctx):
-        dc_successful = await self.dc(ctx)
+    @commands.slash_command(guild_ids = [730196305124655176])
+    async def dc(self, ctx):
+        """Disconnect from the current voice channel."""
+        dc_successful = await self.disconnect(ctx)
         if dc_successful:
-            await ctx.send("Disconnected \N{WHITE HEAVY CHECK MARK}")
+            await ctx.respond("Disconnected \N{WHITE HEAVY CHECK MARK}")
         else:
-            await ctx.send("I'm not in a voice channel right now, bozo! \N{CLOWN FACE}")
+            await ctx.respond("I'm not in a voice channel right now, bozo! \N{CLOWN FACE}")
 
     # Skips to next song in queue
-    @commands.command(aliases = ["s","fs"], help = "Skip to the next song in the queue.")
+    @commands.slash_command(guild_ids = [730196305124655176])
     async def skip(self, ctx):
-        if ctx.voice_client.is_playing():
-            ctx.voice_client.stop()
-            await ctx.send("\N{BLACK RIGHT-POINTING DOUBLE TRIANGLE} **Skipped!**")
+        """Skip to the next song in the queue."""
+        skipped = await self._skip(ctx)
+        if skipped:
+            await ctx.respond("\N{BLACK RIGHT-POINTING DOUBLE TRIANGLE} **Skipped!**")
         else:
-            await ctx.send("I'm not playing anything right now, bozo! \N{CLOWN FACE}")
+            await ctx.respond("I'm not playing anything right now, bozo! \N{CLOWN FACE}")
 
     # Pause the current song being played
     @commands.command(help = "Pause the song currently being played.")

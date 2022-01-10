@@ -68,7 +68,7 @@ async def on_message(message):
 @bot.event
 async def on_application_command_error(ctx: discord.ApplicationContext, error: Exception):
     error_smol = str(error)
-    await ctx.respond("Uh oh! Error!\n"+error_smol, delete_after=5)
+    await ctx.respond("Uh oh! Error!\n"+error_smol)
     raise error
 
 @bot.event
