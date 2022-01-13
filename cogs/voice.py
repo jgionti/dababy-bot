@@ -78,6 +78,27 @@ class Voice(commands.Cog):
             return True
         return False
 
+    # Creates the embed for queue info
+    # Return: Embed
+    def create_queue_embed(self, ctx):
+        req = self.np["requested_by"]
+        queue = "__Now playing__\n"+self.hyperlink(self.np) + \
+            "\n`(" + timer.get_timestr(self.np["duration"]) + ") Requested by "+ req.name+"#"+req.discriminator+ "`\n\n"
+        if len(self.q) > 0:
+            queue += "__Coming up__\n"
+            index = 1
+            for song in self.q:
+                req = song["requested_by"]
+                queue += "`"+str(index)+".` " + self.hyperlink(song) + \
+                    "\n`(" + timer.get_timestr(song["duration"]) + ") Requested by "+ req.name+"#"+req.discriminator+ "`\n\n"
+                index += 1
+            queue += "**There are "+str(index-1)+" songs in queue.**"
+        embed = discord.Embed(title = "Queue for "+ctx.guild.name,
+            description = queue,
+            color = ctx.me.color)
+        embed.set_thumbnail(url=self.np["thumbnail"])
+        return embed
+
     # Generates a Discord-formatted hyperlink for a particular song
     # Return: str
     def hyperlink(self, song_info):
@@ -86,27 +107,6 @@ class Voice(commands.Cog):
     #######################
     #       COMMANDS      #
     #######################
-
-    class QueueView(discord.ui.View):
-        def __init__(self, ctx):
-            super().__init__()
-            self.ctx = ctx
-
-        async def on_timeout(self):
-            self.clear_items()
-            self.add_item(discord.ui.Button(label="Timed out! Use /queue to bring up radio controls.", disabled=True, emoji="⏰"))
-
-        async def update(self):
-            pass
-            # TODO: update queue embed
-
-        @discord.ui.button(label="Skip", style=discord.ButtonStyle.green, emoji="⏩")
-        async def skip(self, button: discord.ui.Button, interaction: discord.Interaction):
-            skipped = await Voice._skip(self.ctx)
-            if skipped:
-                await interaction.response.send_message("\N{BLACK RIGHT-POINTING DOUBLE TRIANGLE} **Skipped!**")
-            else:
-                await interaction.response.send_message("I'm not playing anything right now, bozo! \N{CLOWN FACE}")
 
     # Queues up and plays a YouTube video (by URL or search)
     @commands.slash_command(guild_ids = [730196305124655176])
@@ -155,50 +155,11 @@ class Voice(commands.Cog):
         """Displays info about the songs in the queue."""
         if self.np is not None:
             intr: discord.Interaction = await ctx.respond("Generating queue...")
-            req = self.np["requested_by"]
-            queue = "__Now playing__\n"+self.hyperlink(self.np) + \
-                "\n`(" + timer.get_timestr(self.np["duration"]) + ") Requested by "+ req.name+"#"+req.discriminator+ "`\n\n"
-            if len(self.q) > 0:
-                queue += "__Coming up__\n"
-                index = 1
-                for song in self.q:
-                    req = song["requested_by"]
-                    queue += "`"+str(index)+".` " + self.hyperlink(song) + \
-                        "\n`(" + timer.get_timestr(song["duration"]) + ") Requested by "+ req.name+"#"+req.discriminator+ "`\n\n"
-                    index += 1
-                queue += "**There are "+str(index-1)+" songs in queue.**"
-            embed = discord.Embed(title = "Queue for "+ctx.guild.name,
-                description = queue,
-                color = ctx.me.color)
-            embed.set_thumbnail(url=self.np["thumbnail"])
+            embed = self.create_queue_embed(ctx)
             view = self.QueueView(ctx)
             await intr.edit_original_message(content="", embed=embed)
         else:
             await ctx.respond("I'm not playing anything right now, bozo! \N{CLOWN FACE}")
-
-    # Clears the queue
-    @commands.command(aliases = ["c"], help = "Clears the queue.")
-    async def clear(self, ctx):
-        if len(self.q) > 0:
-            self.q = []
-            await ctx.send("**No! More! Queue!** \N{COLLISION SYMBOL} (Queue cleared)")
-        else:
-            await ctx.send("There is no queue, bozo! \N{CLOWN FACE}")
-    
-    # Sends info about the song currently playing
-    @commands.command(aliases = ["np"], help = "Displays info about the currently playing song.")
-    async def nowplaying(self, ctx):
-        if self.np is not None:
-            embed = discord.Embed(title = "Now Playing",
-                description = self.hyperlink(self.np),
-                color = self.np["requested_by"].top_role.color)
-            embed.set_footer(text="Requested by: "+self.np["requested_by"].name+"#"+self.np["requested_by"].discriminator)
-            embed.set_thumbnail(url=self.np["thumbnail"])
-            await ctx.send(embed=embed)
-        elif ctx.voice_client.is_playing():
-            await ctx.send("I don't know what I'm playing right now! \N{CLOWN FACE}")
-        else:
-            await ctx.send("I'm not playing anything right now, bozo! \N{CLOWN FACE}")
 
     # Disconnects from current vc if applicable
     @commands.slash_command(guild_ids = [730196305124655176])
@@ -219,20 +180,6 @@ class Voice(commands.Cog):
             await ctx.respond("\N{BLACK RIGHT-POINTING DOUBLE TRIANGLE} **Skipped!**")
         else:
             await ctx.respond("I'm not playing anything right now, bozo! \N{CLOWN FACE}")
-
-    # Pause the current song being played
-    @commands.command(help = "Pause the song currently being played.")
-    async def pause(self, ctx):
-        if ctx.voice_client.is_playing():
-            ctx.voice_client.pause()
-            await ctx.send("\N{DOUBLE VERTICAL BAR} **Paused!**")
-
-    # Resume the current song being paused
-    @commands.command(help = "Resume the song currently being paused.")
-    async def resume(self, ctx):
-        if ctx.voice_client.is_paused:
-            ctx.voice_client.resume()
-            await ctx.send("\N{BLACK RIGHT-POINTING TRIANGLE} **Resuming!**")
 
 def setup(bot):
     bot.add_cog(Voice(bot))
