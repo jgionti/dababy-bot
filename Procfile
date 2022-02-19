@@ -1,1 +1,1 @@
-worker: python dababybot.py
+worker: python main.py

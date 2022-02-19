@@ -91,13 +91,16 @@ class Events(commands.Cog):
     #######################
 
     # Main event command
-    @commands.command(hidden=True)
-    @commands.has_permissions(administrator=True)
-    async def event(self, ctx, *, arg: str):
+    @commands.slash_command(guild_ids = [730196305124655176])
+    @discord.has_role("Admin")
+    async def event(self, ctx,
+        event: discord.Option(str, "Event to toggle.", required = False)
+    ):
+        """Start an event or stop all running events."""
         # Remove name from event arguments
-        name = arg.split()[0]
-        if len(arg.split()) > 1:
-            arg = str(arg.split(None, 1)[1])
+        name = event.split()[0]
+        if len(event.split()) > 1:
+            arg = str(event.split(None, 1)[1])
         else: arg = None
         # Parse name
         if name in ["mrpingchallenge", "mpc"]:
@@ -106,14 +109,14 @@ class Events(commands.Cog):
             await self.stolenletter(ctx) if arg == None else await self.stolenletter(ctx, arg)
         elif name in ["maxisonline", "max"]:
             await self.maxisonline(ctx)
-        else: await ctx.message.add_reaction("\N{CROSS MARK}")
+        elif name in ["stop", "clear"]:
+            await self.stopevents(ctx)
+        else: await ctx.respond("\N{CROSS MARK}", ephemeral = True)
 
     # Reset all current events
-    @commands.command(aliases = ["se"], hidden=True)
-    @commands.has_permissions(administrator=True)
     async def stopevents(self, ctx):
         self.__init__(self.bot)
-        await ctx.message.add_reaction("\N{WHITE HEAVY CHECK MARK}")
+        await ctx.respond("\N{WHITE HEAVY CHECK MARK} Stopped events!", ephemeral = True)
 
     # Mr Ping Challenge
     # The first user to ping @everyone 19 times in a row wins.
@@ -122,7 +125,7 @@ class Events(commands.Cog):
         self.ping_map = {}
         self.ping_winner = None
         msg = "The Mr. Ping Challenge has started! The first user to complete it gets a prize!"
-        await ctx.send(content=msg, file=discord.File("resources/MrPingChallenge.png"))
+        await ctx.respond(content=msg, file=discord.File("resources/MrPingChallenge.png"))
         self.has_ping_challenge = True
 
         # Loop while waiting for winner (a user has 19 pings)
@@ -145,12 +148,12 @@ class Events(commands.Cog):
         # Toggle event if active
         if self.has_sl_event:
             self.has_sl_event = False
-            await ctx.send("Let's go! The letter \'" + self.stolen_char + "\' has been found again!")
+            await ctx.respond("Let's go! The letter \'" + self.stolen_char + "\' has been found again!")
             return
 
         # Initialize event
         if len(stolen_char) != 1:
-            await ctx.message.add_reaction("\N{CROSS MARK}")
+            await ctx.respond("\N{CROSS MARK} Only 1 character allowed!", ephemeral = True)
             return
         self.stolen_char = stolen_char.lower()
 
@@ -159,7 +162,7 @@ class Events(commands.Cog):
             "This is actually a quite bad jump from before! **(All messages with the exiled letter will be zapped)**"
         msg = msg.replace(self.stolen_char, '')
         msg = msg.replace(self.stolen_char.upper(), '')
-        await ctx.send(content=msg, file=discord.File("resources/StolenLetter.PNG"))
+        await ctx.respond(content=msg, file=discord.File("resources/StolenLetter.PNG"))
 
         # Start event
         self.has_sl_event = True
@@ -173,7 +176,7 @@ class Events(commands.Cog):
             await self.max_channel.delete()
             self.max_channel = None
             self.max_member = None
-            await ctx.message.add_reaction("\N{SEE-NO-EVIL MONKEY}")
+            await ctx.respond("\N{SEE-NO-EVIL MONKEY}")
             return
         # Create new #max channel if one doesn't already exist
         try:
@@ -188,7 +191,7 @@ class Events(commands.Cog):
         # Start event and post current status
         await self.post_status(self.max_member)
         # Send starting reaction
-        await ctx.message.add_reaction("\N{EYES}")
+        await ctx.respond("\N{EYES}")
         self.has_max_event = True
 
 def setup(bot):

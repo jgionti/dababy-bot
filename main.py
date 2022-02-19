@@ -1,11 +1,10 @@
-import logging
-logging.basicConfig(level=logging.INFO)
 import os
 import discord
 from discord.ext import commands
 
 # Initialize bot and cogs
-bot: commands.Bot = commands.Bot('$', intents=discord.Intents.all())
+
+bot: commands.Bot = commands.Bot(intents=discord.Intents.all())
 extensions = [
     "cogs.general",
     "cogs.roles",
@@ -36,7 +35,7 @@ async def on_ready():
     print("\nLogged in as\n" + bot.user.name + "\n" + str(bot.user.id) + "\n------")
 
 # Error message display
-@bot.event
+#@bot.event
 async def on_command_error(ctx, error):
     msg_sec = 20
     emoji = "\N{THUMBS UP SIGN}"
@@ -62,37 +61,54 @@ async def on_command_error(ctx, error):
     raise error
 
 # Bot only takes commands from #dababy
-@bot.event
+#@bot.event
 async def on_message(message):
     if message.channel.name == "dababy":
         await bot.process_commands(message)
 
+@bot.event
+async def on_application_command_error(ctx: discord.ApplicationContext, error: Exception):
+    error_smol = str(error)
+    await ctx.respond("Uh oh! Error!\n"+error_smol)
+    raise error
+
+@bot.event
+async def on_interaction(interaction: discord.Interaction):
+    if interaction.channel.name == "dababy":
+        await bot.process_application_commands(interaction)
+    else:
+        chn = await commands.TextChannelConverter().convert(await bot.get_application_context(interaction), "dababy")
+        await interaction.response.send_message("❌ Use commands in"+chn.mention+"!", ephemeral=True)
+
 # Loads a cog
-@bot.command(help = "Admin only. Loads a cog.")
-@commands.has_permissions(administrator=True)
+#@bot.slash_command(guild_ids = [730196305124655176])
+@discord.has_role("Admin")
 async def load(ctx, ext: str):
+    """Loads a cog."""
     full_ext = "cogs." + ext
     bot.load_extension(full_ext)
     extensions.append(full_ext)
-    await ctx.message.add_reaction("\N{WHITE HEAVY CHECK MARK}")
+    await ctx.respond("Loaded "+ext, ephemeral=True)
 
 # Unloads a cog
-@bot.command(help = "Admin only. Unloads a cog.")
-@commands.has_permissions(administrator=True)
+#@bot.slash_command(guild_ids = [730196305124655176])
+@discord.has_role("Admin")
 async def unload(ctx, ext: str):
+    """Unloads a cog."""
     full_ext = "cogs." + ext
     bot.unload_extension(full_ext)
     extensions.remove(full_ext)
-    await ctx.message.add_reaction("\N{WHITE HEAVY CHECK MARK}")
+    await ctx.respond("Unloaded "+ext, ephemeral=True)
 
 # Reloads all cogs
-@bot.command(help = "Admin only. Reloads most commands.")
-@commands.has_permissions(administrator=True)
+#@bot.slash_command(guild_ids = [730196305124655176])
+@discord.has_role("Admin")
 async def reload(ctx):
+    """Reloads most commands."""
     await ctx.guild.me.edit(nick="DaBaby")
     for ext in extensions:
         bot.reload_extension(ext)
-    await ctx.message.add_reaction("\N{WHITE HEAVY CHECK MARK}")
+    await ctx.respond("Reloaded!", ephemeral=True)
 
 # Start the bot
 bot.run(bot.token)
