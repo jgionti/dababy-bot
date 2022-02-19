@@ -3,7 +3,8 @@ import discord
 from discord.ext import commands
 
 # Initialize bot and cogs
-bot: commands.Bot = commands.Bot(commands.when_mentioned_or("$"), intents=discord.Intents.all())
+
+bot: commands.Bot = commands.Bot(intents=discord.Intents.all())
 extensions = [
     "cogs.general",
     "cogs.roles",
@@ -81,7 +82,7 @@ async def on_interaction(interaction: discord.Interaction):
 
 # Loads a cog
 #@bot.slash_command(guild_ids = [730196305124655176])
-@discord.permissions.has_role("Admin")
+@discord.has_role("Admin")
 async def load(ctx, ext: str):
     """Loads a cog."""
     full_ext = "cogs." + ext
@@ -91,7 +92,7 @@ async def load(ctx, ext: str):
 
 # Unloads a cog
 #@bot.slash_command(guild_ids = [730196305124655176])
-@discord.permissions.has_role("Admin")
+@discord.has_role("Admin")
 async def unload(ctx, ext: str):
     """Unloads a cog."""
     full_ext = "cogs." + ext
@@ -101,7 +102,7 @@ async def unload(ctx, ext: str):
 
 # Reloads all cogs
 #@bot.slash_command(guild_ids = [730196305124655176])
-@discord.permissions.has_role("Admin")
+@discord.has_role("Admin")
 async def reload(ctx):
     """Reloads most commands."""
     await ctx.guild.me.edit(nick="DaBaby")

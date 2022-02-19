@@ -4,7 +4,7 @@ import youtube_dl
 import discord
 import random
 from discord.ext import commands
-from cogs import timer
+from cogs import autocomplete, timer
 
 #####################
 #       voice       #
@@ -48,8 +48,8 @@ class Voice(commands.Cog):
             self.np = info
         else:
             # Disconnect after some time of inactivity
-            for i in range(30):
-                time.sleep(1)
+            for i in range(90):
+                time.sleep(0.25)
                 if ctx.voice_client is not None and ctx.voice_client.is_playing():
                     return
             if ctx.voice_client is not None and not ctx.voice_client.is_playing():
@@ -111,7 +111,7 @@ class Voice(commands.Cog):
     # Queues up and plays a YouTube video (by URL or search)
     @commands.slash_command(guild_ids = [730196305124655176])
     async def play(self, ctx,
-        url: discord.Option(str, "URL or YouTube search term of the audio to queue up and play.")
+        url: discord.Option(str, "URL or YouTube search term of the audio to queue up and play.", autocomplete = autocomplete.get_yt)
     ):
         """Add a video to the queue. Supports URL or YouTube search."""
         # Initial check: only join if author is in a vc
@@ -156,7 +156,7 @@ class Voice(commands.Cog):
         if self.np is not None:
             intr: discord.Interaction = await ctx.respond("Generating queue...")
             embed = self.create_queue_embed(ctx)
-            view = self.QueueView(ctx)
+            #view = self.QueueView(ctx)
             await intr.edit_original_message(content="", embed=embed)
         else:
             await ctx.respond("I'm not playing anything right now, bozo! \N{CLOWN FACE}")

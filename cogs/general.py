@@ -3,6 +3,8 @@ import datetime
 import discord
 from discord.ext import commands
 
+from cogs import autocomplete
+
 #####################
 #      general      #
 #####################
@@ -145,7 +147,7 @@ class General(commands.Cog):
     # States whether a given member is poggers
     @commands.slash_command(guild_ids = [730196305124655176])
     async def pog(self, ctx, 
-        member: discord.Option(str, "Server member to be judged by DaBaby", required = False, default = "me")
+        member: discord.Option(str, "Server member to be judged by DaBaby", required = False, default = "me", autocomplete = autocomplete.get_members)
     ):
         """States whether a server member is poggers. Leave blank or type \"me\" to test yourself."""
         converterplus = self.bot.get_cog("ConverterPlus")
@@ -158,7 +160,7 @@ class General(commands.Cog):
     # Displays info about a particular member
     @commands.slash_command(guild_ids = [730196305124655176])
     async def info(self, ctx, 
-        member: discord.Option(str, "Server member to get info about", required = False, default = "me")
+        member: discord.Option(str, "Server member to get info about", required = False, default = "me", autocomplete = autocomplete.get_members)
     ):
         """Displays info about a server member. Leave blank or type \"me\" to test yourself."""
         async with ctx.channel.typing():

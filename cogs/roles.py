@@ -1,7 +1,7 @@
 import asyncio
 import discord
 from discord.ext import commands
-from cogs import timer
+from cogs import autocomplete, timer
 
 #####################
 #       roles       #
@@ -143,7 +143,7 @@ class Roles(commands.Cog):
     # Displays info about a role and the buttons to do it
     @commands.slash_command(guild_ids = [730196305124655176])
     async def role(self, ctx,
-        role: discord.Option(str, "Role to view info about", required = False, default = "")
+        role: discord.Option(str, "Role to view info about", required = False, default = "", autocomplete = autocomplete.get_roles)
     ):
         """Get info on a role and add/remove that role. Leave blank to see a list of roles."""
         if role == "":
@@ -158,16 +158,16 @@ class Roles(commands.Cog):
 
     # Gives user the Brazil role for some time (in seconds)
     @commands.slash_command(guild_ids = [730196305124655176])
-    @discord.permissions.has_role("Admin")
+    @discord.has_role("Admin")
     async def brazil(self, ctx,
-        target: discord.Option(str, "Server member to send to Brazil"),
+        member: discord.Option(str, "Server member to send to Brazil", autocomplete = autocomplete.get_members),
         time: discord.Option(float, "How long to keep the member in Brazil (in seconds)", required = False, default = 60),
         reason: discord.Option(str, "Reason for sending member to Brazil", required = False, default = "")
     ):
         """Send a server member to Brazil for some time."""
         # Find member and check if they're already in Brazil
         converterplus = self.bot.get_cog("ConverterPlus")
-        member = await converterplus.lookup_member(ctx, target)
+        member = await converterplus.lookup_member(ctx, member)
         brazil_role = await converterplus.lookup_role(ctx, "Brazil")
         if brazil_role in member.roles:
             if member.id in self.brazil_times:

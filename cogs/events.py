@@ -92,7 +92,7 @@ class Events(commands.Cog):
 
     # Main event command
     @commands.slash_command(guild_ids = [730196305124655176])
-    @discord.permissions.has_role("Admin")
+    @discord.has_role("Admin")
     async def event(self, ctx,
         event: discord.Option(str, "Event to toggle.", required = False)
     ):
