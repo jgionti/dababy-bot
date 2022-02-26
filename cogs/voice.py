@@ -18,10 +18,31 @@ class Voice(commands.Cog):
         self.q = [] # music queue
         self.np = None
 
+        self.vc_log = {}
+
     # Disconnect on error
     @commands.Cog.listener()
     async def on_application_command_error(self, ctx):
         await self.disconnect(ctx)
+
+    # Save info on join/leave
+    @commands.Cog.listener()
+    async def on_voice_state_update(self, member: discord.Member, before: discord.VoiceState, after: discord.VoiceState):
+        action = ""
+        channel = None
+
+        # Check for join
+        if after.channel and (not before.channel or before.channel.id != after.channel.id):
+            action = "joined"
+            channel = after.channel
+        # Check for leave
+        elif before.channel and (not after.channel or after.channel.id != before.channel.id):
+            action = "left"
+            channel = before.channel
+        
+        if action != "":
+            self.vc_log = {"member" : member.display_name, "action" : action, "channel" : channel.name, "time" : time.time()}
+
 
     #######################
     #  HELPER FUNCTIONS   #
@@ -180,6 +201,18 @@ class Voice(commands.Cog):
             await ctx.respond("\N{BLACK RIGHT-POINTING DOUBLE TRIANGLE} **Skipped!**")
         else:
             await ctx.respond("I'm not playing anything right now, bozo! \N{CLOWN FACE}")
+
+    # Send who just joined or left the vc
+    @commands.slash_command(guild_ids = [730196305124655176])
+    async def whojust(self, ctx):
+        """Find out who just joined or left the voice channel."""
+        if not self.vc_log:
+            await ctx.respond("Nobody's done anything recently, bozo! 🤡", ephemeral=True)
+            return
+
+        msg = self.vc_log["member"] + " " + self.vc_log["action"] + " [" + self.vc_log["channel"] + "] " + \
+            timer.get_timestr(int(time.time() - self.vc_log["time"]), is_ts=False) + " ago."
+        await ctx.respond(msg, ephemeral=True)
 
 def setup(bot):
     bot.add_cog(Voice(bot))
