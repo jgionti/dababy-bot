@@ -34,42 +34,10 @@ async def on_ready():
         await guild.me.edit(nick="DaBaby")
     print("\nLogged in as\n" + bot.user.name + "\n" + str(bot.user.id) + "\n------")
 
-# Error message display
-#@bot.event
-async def on_command_error(ctx, error):
-    msg_sec = 20
-    emoji = "\N{THUMBS UP SIGN}"
-    error_smol = error.__class__.__name__ + ": " + str(error)
-    error_str = ("Uh oh! Error!\n\n" + error_smol + "\n\n"
-                "This error message will be deleted in " + str(msg_sec) + " seconds.\n" +
-                "Or click on the " + emoji + " reaction to keep this message.")
-    msg: discord.Message = await ctx.send(error_str, reference=ctx.message, mention_author=False)
-    await msg.add_reaction(emoji)
-
-    def check(reaction, user):
-        return reaction.emoji == emoji and user != ctx.me
-    try: react, user = await bot.wait_for("reaction_add", check=check, timeout=msg_sec)
-    except: react = None
-    
-    if react and react.count > 1:
-        await msg.clear_reactions()
-        await msg.edit(content="Uh oh! Error! "+error_smol)
-    else:
-        await msg.delete()
-        await ctx.message.add_reaction("\N{CROSS MARK}")
-
-    raise error
-
-# Bot only takes commands from #dababy
-#@bot.event
-async def on_message(message):
-    if message.channel.name == "dababy":
-        await bot.process_commands(message)
-
 @bot.event
 async def on_application_command_error(ctx: discord.ApplicationContext, error: Exception):
     error_smol = str(error)
-    await ctx.respond("Uh oh! Error!\n"+error_smol)
+    await ctx.respond("Uh oh! Error!\n```fix\n"+error_smol+"```")
     raise error
 
 @bot.event
