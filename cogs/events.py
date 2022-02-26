@@ -24,7 +24,7 @@ class Events(commands.Cog):
 
         # Max is Online Event
         self.has_max_event = False
-        self.max_channel = None
+        self.max_thread = None
         self.max_member = None
         self.gif_str = ""
 
@@ -84,7 +84,7 @@ class Events(commands.Cog):
             self.gif_str = "https://cdn.discordapp.com/attachments/290272452427251723/912784098014142504/dmc-max-away.gif"
         elif member.status == discord.Status.dnd:
             self.gif_str = "https://cdn.discordapp.com/attachments/290272452427251723/912784109925982308/dmc-max-dnd.gif"
-        await self.max_channel.send(self.gif_str)
+        await self.max_thread.send(self.gif_str)
 
     #######################
     #       COMMANDS      #
@@ -173,16 +173,17 @@ class Events(commands.Cog):
         # Toggle event if active
         if self.has_max_event:
             self.has_max_event = False
-            await self.max_channel.delete()
-            self.max_channel = None
+            await self.max_thread.archive()
+            self.max_thread = None
             self.max_member = None
             await ctx.respond("\N{SEE-NO-EVIL MONKEY}")
             return
-        # Create new #max channel if one doesn't already exist
+        # Create new max thread in #general if it doesn't already exist
+        channel: discord.TextChannel = await self.bot.get_cog("ConverterPlus").lookup_textchannel(ctx, "general")
         try:
-            self.max_channel: discord.TextChannel = await self.bot.get_cog("ConverterPlus").lookup_textchannel(ctx, "max")
-        except commands.ChannelNotFound:
-            self.max_channel: discord.TextChannel = await ctx.guild.create_text_channel("max", topic="max")
+            self.max_thread: discord.Thread = await self.bot.get_cog("ConverterPlus").lookup_thread(ctx, "max")
+        except commands.ThreadNotFound:
+            self.max_thread: discord.Thread = await channel.create_thread(name="max", type=discord.ChannelType.public_thread)
         # Create Max member objects
         max_id = 143524110813757440
         self.max_member: discord.Member = ctx.guild.get_member(max_id)
@@ -191,7 +192,7 @@ class Events(commands.Cog):
         # Start event and post current status
         await self.post_status(self.max_member)
         # Send starting reaction
-        await ctx.respond("\N{EYES}")
+        await ctx.respond("\N{EYES} " + self.max_thread.mention)
         self.has_max_event = True
 
 def setup(bot):

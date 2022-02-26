@@ -49,7 +49,7 @@ class Voice(commands.Cog):
         else:
             # Disconnect after some time of inactivity
             for i in range(90):
-                time.sleep(0.25)
+                time.sleep(1)
                 if ctx.voice_client is not None and ctx.voice_client.is_playing():
                     return
             if ctx.voice_client is not None and not ctx.voice_client.is_playing():

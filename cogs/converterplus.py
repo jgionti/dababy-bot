@@ -99,5 +99,14 @@ class ConverterPlus(commands.Cog):
         textchannel = await converter.convert(ctx, target)
         return textchannel
 
+    # Textchannel converter
+    # Return: Thread
+    # Raises: ThreadNotFound
+    async def lookup_thread(self, ctx, target: str):
+        # 1. Try the converter
+        converter = commands.ThreadConverter()
+        thread = await converter.convert(ctx, target)
+        return thread
+
 def setup(bot):
     bot.add_cog(ConverterPlus(bot))
