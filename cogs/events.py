@@ -62,7 +62,7 @@ class Events(commands.Cog):
     # Listener for change in member info
     # Max is Online is DREADFULLY hard coded, will need refactor in future
     @commands.Cog.listener()
-    async def on_member_update(self, before: discord.Member, after: discord.Member):
+    async def on_presence_update(self, before: discord.Member, after: discord.Member):
         # Max is Online event
         if self.has_max_event:
             # Get Max's info only
