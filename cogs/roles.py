@@ -74,9 +74,12 @@ class Roles(commands.Cog):
     @staticmethod
     async def create_role_embed(role):
         mems = ""
-        for mem in role.members[:-1]:
-            mems += mem.mention + ", "
-        mems += role.members[-1].mention
+        if (len(role.members) > 0):
+            for mem in role.members[:-1]:
+                mems += mem.mention + ", "
+            mems += role.members[-1].mention
+        if (mems == ""):
+            mems = "None"
         embed = discord.Embed(color=role.color, title="Role Info", description=role.mention)
         embed.add_field(name="Date Created", value=role.created_at.strftime("%m/%d/%Y"))
         embed.add_field(name="Color", value=str(role.color))
@@ -104,7 +107,7 @@ class Roles(commands.Cog):
     # View for /role buttons
     class RoleView(discord.ui.View):
         def __init__(self, role, allowed_roles):
-            super().__init__()
+            super().__init__(timeout=600)
             self.role = role
             self.message = None
             if role not in allowed_roles:
@@ -114,7 +117,7 @@ class Roles(commands.Cog):
 
         async def on_timeout(self):
             self.clear_items()
-            self.add_item(discord.ui.Button(label="Timed out! Use /role to get or remove this role.", disabled=True, emoji="⏰"))
+            self.add_item(discord.ui.Button(label="Timed out! Use /role "+self.role.name.lower()+" to get or remove this role.", disabled=True, emoji="⏰"))
             await self.update()
 
         async def update(self):
@@ -142,7 +145,7 @@ class Roles(commands.Cog):
 
     # Displays info about a role and the buttons to do it
     @commands.slash_command(guild_ids = [730196305124655176])
-    async def role(self, ctx,
+    async def role(self, ctx: discord.ApplicationContext,
         role: discord.Option(str, "Role to view info about", required = False, default = "", autocomplete = autocomplete.get_roles)
     ):
         """Get info on a role and add/remove that role. Leave blank to see a list of roles."""

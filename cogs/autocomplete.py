@@ -30,10 +30,13 @@ def get_roles(ctx: discord.AutocompleteContext):
 
 def get_yt(ctx: discord.AutocompleteContext):
     arr = []
+    arr.append(ctx.options["url"])
     search = ctx.options["url"]
     ytsearch = youtube_search.YoutubeSearch(search, max_results=5)
     for vid in ytsearch.videos:
-        arr.append(vid["id"] + " | " + vid["channel"] + ": \"" + vid["title"] + '\"')
+        str = vid["id"] + " | " + vid["channel"] + ": \"" + vid["title"] + '\"'
+        str = str[:96] + (str[96:] and "...")
+        arr.append(str)
     
     return _autocomplete(arr, "")
     

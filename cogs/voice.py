@@ -120,6 +120,19 @@ class Voice(commands.Cog):
         embed.set_thumbnail(url=self.np["thumbnail"])
         return embed
 
+    # Create embed for current song info
+    # Return: Embed
+    def create_song_embed(self, ctx, info, prefix: str):
+        req = info["requested_by"]
+        np = self.hyperlink(info) + \
+            "\n`(" + timer.get_timestr(info["duration"]) + ") Requested by "+ req.name+"#"+req.discriminator+ "`\n\n"
+        embed = discord.Embed(title = prefix+":",
+            description = np,
+            color = ctx.me.color)
+        embed.set_thumbnail(url=info["thumbnail"])
+        return embed
+
+
     # Generates a Discord-formatted hyperlink for a particular song
     # Return: str
     def hyperlink(self, song_info):
@@ -160,14 +173,17 @@ class Voice(commands.Cog):
         await self.join(ctx)
         info["requested_by"] = ctx.author
 
+        prefix = ""
         if ctx.voice_client.is_playing():
             self.q.append(info)
-            await intr.edit_original_message(content="**Queued up:** `"+info["title"]+"`")
+            prefix = "Queued Up"
         else:
             source = info['formats'][0]['url']
             ctx.voice_client.play(discord.FFmpegPCMAudio(source), after=lambda e: self.play_next(ctx))
-            await intr.edit_original_message(content="**Now playing:** \N{MUSICAL NOTE} `"+info["title"]+"`")
             self.np = info
+            prefix = "Now Playing"
+        embed = self.create_song_embed(ctx, info, prefix)
+        await intr.edit_original_message(content="", embed=embed)
 
     # Sends info about the songs in the queue
     #@commands.command(aliases = ["q"], help = "Displays info about the songs in the queue.")
