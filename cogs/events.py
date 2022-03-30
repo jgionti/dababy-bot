@@ -2,6 +2,7 @@ import asyncio
 import discord
 from discord.ext import commands
 import re
+import pickle
 
 #####################
 #      events       #
@@ -178,12 +179,25 @@ class Events(commands.Cog):
             self.max_member = None
             await ctx.respond("\N{SEE-NO-EVIL MONKEY}")
             return
+
         # Create new max thread in #general if it doesn't already exist
         channel: discord.TextChannel = await self.bot.get_cog("ConverterPlus").lookup_textchannel(ctx, "general")
-        try:
-            self.max_thread: discord.Thread = await self.bot.get_cog("ConverterPlus").lookup_thread(ctx, "max")
-        except commands.ThreadNotFound:
-            self.max_thread: discord.Thread = await channel.create_thread(name="max", type=discord.ChannelType.public_thread)
+        guild: discord.Guild = self.bot.get_guild(730196305124655176)
+        # Look for discord-plays thread in open threads
+        for thr in guild.threads:
+            if thr.name == "max":
+                self.max_thread = thr
+                break
+        # Look for thread in archived threads
+        if self.max_thread == None:
+            async for thr in channel.archived_threads():
+                if (thr.name == "max"):
+                    self.max_thread = thr
+                    break
+        # Create thread if can't find it
+        if self.max_thread == None:
+            self.max_thread = await channel.create_thread(name="discord-plays", type=discord.ChannelType.public_thread)
+
         # Create Max member objects
         max_id = 143524110813757440
         self.max_member: discord.Member = ctx.guild.get_member(max_id)

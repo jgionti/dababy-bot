@@ -1,10 +1,11 @@
 import os
+import sys
 import discord
 from discord.ext import commands
 
 # Initialize bot and cogs
 
-bot: commands.Bot = commands.Bot(intents=discord.Intents.all())
+bot: commands.Bot = commands.Bot("$", intents=discord.Intents.all(), )
 extensions = [
     "cogs.general",
     "cogs.roles",
@@ -47,36 +48,6 @@ async def on_interaction(interaction: discord.Interaction):
     else:
         chn = await commands.TextChannelConverter().convert(await bot.get_application_context(interaction), "dababy")
         await interaction.response.send_message("❌ Use commands in"+chn.mention+"!", ephemeral=True)
-
-# Loads a cog
-#@bot.slash_command(guild_ids = [730196305124655176])
-@discord.has_role("Admin")
-async def load(ctx, ext: str):
-    """Loads a cog."""
-    full_ext = "cogs." + ext
-    bot.load_extension(full_ext)
-    extensions.append(full_ext)
-    await ctx.respond("Loaded "+ext, ephemeral=True)
-
-# Unloads a cog
-#@bot.slash_command(guild_ids = [730196305124655176])
-@discord.has_role("Admin")
-async def unload(ctx, ext: str):
-    """Unloads a cog."""
-    full_ext = "cogs." + ext
-    bot.unload_extension(full_ext)
-    extensions.remove(full_ext)
-    await ctx.respond("Unloaded "+ext, ephemeral=True)
-
-# Reloads all cogs
-#@bot.slash_command(guild_ids = [730196305124655176])
-@discord.has_role("Admin")
-async def reload(ctx):
-    """Reloads most commands."""
-    await ctx.guild.me.edit(nick="DaBaby")
-    for ext in extensions:
-        bot.reload_extension(ext)
-    await ctx.respond("Reloaded!", ephemeral=True)
 
 # Start the bot
 bot.run(bot.token)
