@@ -107,7 +107,7 @@ class Roles(commands.Cog):
     # View for /role buttons
     class RoleView(discord.ui.View):
         def __init__(self, role, allowed_roles):
-            super().__init__(timeout=600)
+            super().__init__(timeout=300)
             self.role = role
             self.message = None
             if role not in allowed_roles:

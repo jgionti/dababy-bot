@@ -124,12 +124,15 @@ class Voice(commands.Cog):
     # Return: Embed
     def create_song_embed(self, ctx, info, prefix: str):
         req = info["requested_by"]
-        np = self.hyperlink(info) + \
-            "\n`(" + timer.get_timestr(info["duration"]) + ") Requested by "+ req.name+"#"+req.discriminator+ "`\n\n"
+        dur = timer.get_timestr(info["duration"]) if "duration" in info.keys() else ""
+        np = f"{self.hyperlink(info)}\n`" + \
+            (f"({dur}) " if dur != "" else "") + \
+            f"Requested by "+ req.name+"#"+req.discriminator+ "`\n\n"
         embed = discord.Embed(title = prefix+":",
             description = np,
             color = ctx.me.color)
-        embed.set_thumbnail(url=info["thumbnail"])
+        url = info["thumbnail"] if "thumbnail" in info.keys() else self.bot.user.avatar.url
+        embed.set_thumbnail(url=url)
         return embed
 
 
