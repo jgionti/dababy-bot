@@ -11,7 +11,8 @@ extensions = [
     "cogs.roles",
     "cogs.converterplus",
     "cogs.events",
-    "cogs.voice"]
+    "cogs.voice",
+    "cogs.poll"]
 for ext in extensions:
     bot.load_extension(ext)
 
@@ -43,11 +44,13 @@ async def on_application_command_error(ctx: discord.ApplicationContext, error: E
 
 @bot.event
 async def on_interaction(interaction: discord.Interaction):
-    if interaction.channel.name == "dababy":
+    global_cmds = ["poll"]
+    if (interaction.channel.name == "dababy" or
+            interaction.data["name"] in global_cmds):
         await bot.process_application_commands(interaction)
     else:
         chn = await commands.TextChannelConverter().convert(await bot.get_application_context(interaction), "dababy")
-        await interaction.response.send_message("❌ Use commands in"+chn.mention+"!", ephemeral=True)
+        await interaction.response.send_message(f"❌ Use commands in{chn.mention}!", ephemeral=True)
 
 # Start the bot
 bot.run(bot.token)
