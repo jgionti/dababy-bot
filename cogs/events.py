@@ -1,8 +1,9 @@
 import asyncio
+import re
+
 import discord
 from discord.ext import commands
-import re
-import pickle
+from lib import converterplus
 
 #####################
 #      events       #
@@ -181,7 +182,7 @@ class Events(commands.Cog):
             return
 
         # Create new max thread in #general if it doesn't already exist
-        channel: discord.TextChannel = await self.bot.get_cog("ConverterPlus").lookup_textchannel(ctx, "general")
+        channel: discord.TextChannel = await converterplus.lookup_textchannel(ctx, "general")
         guild: discord.Guild = self.bot.get_guild(730196305124655176)
         # Look for discord-plays thread in open threads
         for thr in guild.threads:

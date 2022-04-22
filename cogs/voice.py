@@ -1,10 +1,11 @@
 import asyncio
-import time
-import youtube_dl
-import discord
 import random
+import time
+
+import discord
+import youtube_dl
 from discord.ext import commands
-from cogs import autocomplete, timer
+from lib import autocomplete, timer
 
 #####################
 #       voice       #
@@ -18,7 +19,7 @@ class Voice(commands.Cog):
         self.q = [] # music queue
         self.np = None
 
-        self.vc_log = {}
+        self.vc_log = []
 
     # Disconnect on error
     @commands.Cog.listener()
@@ -41,7 +42,9 @@ class Voice(commands.Cog):
             channel = before.channel
         
         if action != "":
-            self.vc_log = {"member" : member.display_name, "action" : action, "channel" : channel.name, "time" : time.time()}
+            log_data = {"member" : member.mention, "action" : action, "channel" : channel.name, "time" : time.time()}
+            self.vc_log.insert(0, log_data)
+            if (len(self.vc_log) > 5): self.vc_log.pop()
 
 
     #######################
@@ -104,14 +107,14 @@ class Voice(commands.Cog):
     def create_queue_embed(self, ctx):
         req = self.np["requested_by"]
         queue = "__Now playing__\n"+self.hyperlink(self.np) + \
-            "\n`(" + timer.get_timestr(self.np["duration"]) + ") Requested by "+ req.name+"#"+req.discriminator+ "`\n\n"
+            "\n`(" + timer.get_timestampstr(self.np["duration"]) + ") Requested by "+ req.name+"#"+req.discriminator+ "`\n\n"
         if len(self.q) > 0:
             queue += "__Coming up__\n"
             index = 1
             for song in self.q:
                 req = song["requested_by"]
                 queue += "`"+str(index)+".` " + self.hyperlink(song) + \
-                    "\n`(" + timer.get_timestr(song["duration"]) + ") Requested by "+ req.name+"#"+req.discriminator+ "`\n\n"
+                    "\n`(" + timer.get_timestampstr(song["duration"]) + ") Requested by "+ req.name+"#"+req.discriminator+ "`\n\n"
                 index += 1
             queue += "**There are "+str(index-1)+" songs in queue.**"
         embed = discord.Embed(title = "Queue for "+ctx.guild.name,
@@ -124,7 +127,7 @@ class Voice(commands.Cog):
     # Return: Embed
     def create_song_embed(self, ctx, info, prefix: str):
         req = info["requested_by"]
-        dur = timer.get_timestr(info["duration"]) if "duration" in info.keys() else ""
+        dur = timer.get_timestampstr(info["duration"]) if "duration" in info.keys() else ""
         np = f"{self.hyperlink(info)}\n`" + \
             (f"({dur}) " if dur != "" else "") + \
             f"Requested by "+ req.name+"#"+req.discriminator+ "`\n\n"
@@ -189,7 +192,6 @@ class Voice(commands.Cog):
         await intr.edit_original_message(content="", embed=embed)
 
     # Sends info about the songs in the queue
-    #@commands.command(aliases = ["q"], help = "Displays info about the songs in the queue.")
     @commands.slash_command(guild_ids = [730196305124655176])
     async def queue(self, ctx):
         """Displays info about the songs in the queue."""
@@ -224,13 +226,15 @@ class Voice(commands.Cog):
     # Send who just joined or left the vc
     @commands.slash_command(guild_ids = [730196305124655176])
     async def whojust(self, ctx):
-        """Find out who just joined or left the voice channel."""
-        if not self.vc_log:
+        """Find out who recently joined or left the voice channel."""
+        if len(self.vc_log) == 0:
             await ctx.respond("Nobody's done anything recently, bozo! 🤡", ephemeral=True)
             return
 
-        msg = self.vc_log["member"] + " " + self.vc_log["action"] + " [" + self.vc_log["channel"] + "] " + \
-            timer.get_timestr(int(time.time() - self.vc_log["time"]), is_ts=False) + " ago."
+        msg = "Here's the scoop:"
+        for data in self.vc_log:
+            timestr = timer.get_timestr(int(time.time() - data["time"]))
+            msg += f"\n{data['member']} {data['action']} [{data['channel']}] {timestr} ago."
         await ctx.respond(msg, ephemeral=True)
 
 def setup(bot):

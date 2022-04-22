@@ -1,36 +1,40 @@
 import os
-import sys
+from os.path import isfile, join
+
 import discord
 from discord.ext import commands
 
-# Initialize bot and cogs
 
-bot: commands.Bot = commands.Bot("$", intents=discord.Intents.all(), )
-extensions = [
-    "cogs.general",
-    "cogs.roles",
-    "cogs.converterplus",
-    "cogs.events",
-    "cogs.voice",
-    "cogs.poll"]
-for ext in extensions:
-    bot.load_extension(ext)
+def bot_init():
+    bot = commands.Bot("$", intents=discord.Intents.all())
 
-# Load data from .env
-token = os.environ.get("BOT_TOKEN")
+    # Load all cogs in 'cogs' folder
+    dir = join(os.getcwd(), "cogs")
+    extensions = []
+    for file in os.listdir(dir):
+        if isfile(join(dir, file)) and not file.startswith("_"):
+            extensions.append("cogs." + file.removesuffix(".py"))
+    for ext in extensions:
+        bot.load_extension(ext)
 
-# "static" variables
-# Placed here to prevent overwrite on $reload
-bot.token = token   # Discord token             str
-bot.phrases = []    # Dababy lines              List[str]
-bot.persona = []    # Persona message cache     List[str]
-bot.pogs = {}       # Map of id:pogs            Dict{int:bool}
+    # Load data from .env
+    token = os.environ.get("BOT_TOKEN")
+
+    # "static" variables
+    # Placed in bot to prevent overwrite on $reload
+    bot.token = token   # Discord token             str
+    bot.phrases = []    # Dababy lines              List[str]
+    bot.pogs = {}       # Map of id:pogs            Dict{int:bool}
+
+    return bot
+
+# Initialize bot
+bot: commands.Bot = bot_init()
 
 # Prints if successfully logged in
 @bot.event
 async def on_ready():
-    activity = discord.Activity(name="you. Run.")
-    activity.type = discord.ActivityType(2)
+    activity = discord.Activity(name="you. Run.", activity=discord.ActivityType(2))
     await bot.change_presence(activity=activity)
     for guild in bot.guilds:
         await guild.me.edit(nick="DaBaby")
