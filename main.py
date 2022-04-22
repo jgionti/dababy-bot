@@ -44,7 +44,7 @@ async def on_application_command_error(ctx: discord.ApplicationContext, error: E
 
 @bot.event
 async def on_interaction(interaction: discord.Interaction):
-    global_cmds = ["poll"]
+    global_cmds = ["poll", "role"]
     if (interaction.channel.name == "dababy" or
             interaction.data["name"] in global_cmds):
         await bot.process_application_commands(interaction)
