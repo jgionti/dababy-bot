@@ -6,12 +6,12 @@ from discord.ext import commands
 from lib import converterplus
 
 #####################
-#      events       #
+#    eventmanager   #
 #####################
 # Commands and frameworks for starting/maintaining server events
 # Mostly admin only commands
 
-class Events(commands.Cog):
+class EventManager(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
@@ -211,4 +211,4 @@ class Events(commands.Cog):
         self.has_max_event = True
 
 def setup(bot):
-    bot.add_cog(Events(bot))
+    bot.add_cog(EventManager(bot))
