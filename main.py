@@ -34,7 +34,7 @@ bot: commands.Bot = bot_init()
 # Prints if successfully logged in
 @bot.event
 async def on_ready():
-    activity = discord.Activity(name="you. Run.", activity=discord.ActivityType(2))
+    activity = discord.Activity(name="you. Run. 🗿", type=discord.ActivityType(2))
     await bot.change_presence(activity=activity)
     for guild in bot.guilds:
         await guild.me.edit(nick="DaBaby")
