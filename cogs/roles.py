@@ -1,7 +1,8 @@
 import asyncio
+
 import discord
 from discord.ext import commands
-from cogs import autocomplete, timer
+from lib import autocomplete, converterplus, timer
 
 #####################
 #       roles       #
@@ -26,7 +27,7 @@ class Roles(commands.Cog):
     # Get the roles the bot should handle
     # Return: List[Role]
     async def get_auto_roles(self, ctx):
-        dababy_role = await self.bot.get_cog("ConverterPlus").lookup_role(ctx, "DaBaby")
+        dababy_role = await converterplus.lookup_role(ctx, "DaBaby")
         brazil_role = await self.get_brazil_role(ctx)
         auto_roles = []
         for role in ctx.guild.roles:
@@ -39,12 +40,12 @@ class Roles(commands.Cog):
     # Gets Brazil role
     # Return: Role
     async def get_brazil_role(self, ctx):
-        return await self.bot.get_cog("ConverterPlus").lookup_role(ctx, "Brazil")
+        return await converterplus.lookup_role(ctx, "Brazil")
 
     # Gets Brazil channel
     # Return: TextChannel
     async def get_brazil_channel(self, ctx):
-        return await self.bot.get_cog("ConverterPlus").lookup_textchannel(ctx, "brazil")
+        return await converterplus.lookup_textchannel(ctx, "brazil")
 
     # Sends target member to Brazil and informs others in #dababy and #brazil
     # Return: void
@@ -57,7 +58,7 @@ class Roles(commands.Cog):
                 color = member.top_role.color)
         if reason != "":
             embed.add_field(name="You're here because...", value=reason)
-        msg = ("You'll be here for " + timer.get_timestr(time, False) + "!\n\n"
+        msg = ("You'll be here for " + timer.get_timestr(time) + "!\n\n"
                + "That's " + timer.get_time_offset(time).strftime("%m/%d/%Y, %H:%M:%S") + "! Enjoy!")
         embed.add_field(name="Your sentence...", value=msg, inline=False)
         await brazil_channel.send(embed=embed)
@@ -100,10 +101,6 @@ class Roles(commands.Cog):
         embed.set_footer(text="Use /role <role> to add/remove a role.")
         await ctx.respond(embed=embed)
 
-    #######################
-    #       COMMANDS      #
-    #######################
-
     # View for /role buttons
     class RoleView(discord.ui.View):
         def __init__(self, role, allowed_roles):
@@ -143,6 +140,10 @@ class Roles(commands.Cog):
             await interaction.response.send_message(response, ephemeral=True)
             await self.update()
 
+    #######################
+    #       COMMANDS      #
+    #######################
+
     # Displays info about a role and the buttons to do it
     @commands.slash_command(guild_ids = [730196305124655176])
     async def role(self, ctx: discord.ApplicationContext,
@@ -152,7 +153,6 @@ class Roles(commands.Cog):
         if role == "":
             await self.rolelist(ctx)
             return
-        converterplus = self.bot.get_cog("ConverterPlus")
         rol = await converterplus.lookup_role(ctx, role)
         embed = await self.create_role_embed(rol)
         view = self.RoleView(rol, await self.get_auto_roles(ctx))
@@ -169,7 +169,6 @@ class Roles(commands.Cog):
     ):
         """Send a server member to Brazil for some time."""
         # Find member and check if they're already in Brazil
-        converterplus = self.bot.get_cog("ConverterPlus")
         member = await converterplus.lookup_member(ctx, member)
         brazil_role = await converterplus.lookup_role(ctx, "Brazil")
         if brazil_role in member.roles:

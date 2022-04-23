@@ -26,7 +26,7 @@ class Timer:
 
 # Get the time offset by seconds
 # Return: datetime
-def get_time_offset(sec: float=0.0):
+def get_time_offset(sec: float):
     return datetime.datetime.now() + datetime.timedelta(seconds=sec)
 
 # Get the time left (in seconds) until a certain datetime
@@ -49,26 +49,39 @@ def get_time_until(dt: datetime):
         return str(minutes) + "m " + str(seconds) + "s"
     else:
         return str(seconds) + "s"
-    
-# Convert time in seconds to timestamp (h:m:s) or readable (h, min, s)
+
+# Get number returned as at least two decimal places
 # Return: str
-def get_timestr(sec: int=0, is_ts: bool=True):
+def _str(num: int):
+    return ("-" if num < 0 else "") + (str(0) if abs(num) < 10 else "") + str(abs(num))
+
+# Convert time in seconds to timestamp (h:m:s)
+# Return: str
+def get_timestampstr(sec: int):
     hours, remainder = divmod(sec, 3600)
     minutes, seconds = divmod(remainder, 60)
     hours = int(hours)
     minutes = int(minutes)
     seconds = int(seconds)
 
-    if is_ts:
-        if hours > 0:
-            return str(hours)+":"+str(minutes)+":"+str(seconds)
-        else:
-            return str(minutes)+":"+str(seconds)
+    if hours > 0:
+        return _str(hours)+":"+_str(minutes)+":"+_str(seconds)
     else:
-        if hours > 0:
-            return str(hours)+"h "+str(minutes)+"m "+str(seconds)+"s"
-        elif minutes > 0:
-            return str(minutes)+"m "+str(seconds)+"s"
-        else:
-            return str(seconds)+"s"
+        return _str(minutes)+":"+_str(seconds)
+    
+# Convert time in seconds to readable time (h, m, s)
+# Return: str
+def get_timestr(sec: int):
+    hours, remainder = divmod(sec, 3600)
+    minutes, seconds = divmod(remainder, 60)
+    hours = int(hours)
+    minutes = int(minutes)
+    seconds = int(seconds)
+
+    if hours > 0:
+        return str(hours)+"h "+str(minutes)+"m "+str(seconds)+"s"
+    elif minutes > 0:
+        return str(minutes)+"m "+str(seconds)+"s"
+    else:
+        return str(seconds)+"s"
     

@@ -1,9 +1,9 @@
-import random
 import datetime
+import random
+
 import discord
 from discord.ext import commands
-
-from cogs import autocomplete
+from lib import autocomplete, converterplus
 
 #####################
 #      general      #
@@ -150,7 +150,6 @@ class General(commands.Cog):
         member: discord.Option(str, "Server member to be judged by DaBaby", required = False, default = "me", autocomplete = autocomplete.get_members)
     ):
         """States whether a server member is poggers. Leave blank or type \"me\" to test yourself."""
-        converterplus = self.bot.get_cog("ConverterPlus")
         mem = await converterplus.lookup_member(ctx, member)
         is_pog = await self.get_pog(mem)
         if is_pog:
@@ -164,7 +163,6 @@ class General(commands.Cog):
     ):
         """Displays info about a server member. Leave blank or type \"me\" to test yourself."""
         async with ctx.channel.typing():
-            converterplus = self.bot.get_cog("ConverterPlus")
             mem = await converterplus.lookup_member(ctx, member)
             interact = await ctx.respond("Lemme look! (Fetching messages...)")
             msg_tuple = await self.get_message_tuple(ctx, mem)

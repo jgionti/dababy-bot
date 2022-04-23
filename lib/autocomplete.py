@@ -1,6 +1,8 @@
 import discord
-from discord.ext import commands
 import youtube_search
+
+import lib.events.event_factory as event_factory
+from lib.events.event import Event
 
 #####################
 #    autocomplete   #
@@ -39,4 +41,13 @@ def get_yt(ctx: discord.AutocompleteContext):
         arr.append(str)
     
     return _autocomplete(arr, "")
+
+def get_server_events(ctx: discord.AutocompleteContext):
+    arr = []
+    arr.append("stop")
+    events = event_factory.get_events(ctx.bot)
+    e: Event
+    for e in events:
+        arr += e.aliases
+    return _autocomplete(arr, ctx.options["event"])
     
