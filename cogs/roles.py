@@ -153,7 +153,13 @@ class Roles(commands.Cog):
         if role == "":
             await self.rolelist(ctx)
             return
-        rol = await converterplus.lookup_role(ctx, role)
+
+        rol = None
+        try:
+            rol = await converterplus.lookup_role(ctx, role)
+        except commands.RoleNotFound:
+            await ctx.respond("Role not found! 🤡", ephemeral = True)
+            return
         embed = await self.create_role_embed(rol)
         view = self.RoleView(rol, await self.get_auto_roles(ctx))
         intr: discord.Interaction = await ctx.respond(embed=embed, view=view)

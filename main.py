@@ -34,7 +34,7 @@ bot: commands.Bot = bot_init()
 # Prints if successfully logged in
 @bot.event
 async def on_ready():
-    activity = discord.Activity(name="you. Run. 🗿", type=discord.ActivityType(2))
+    activity = discord.Activity(name="you. Run.", type=discord.ActivityType.listening)
     await bot.change_presence(activity=activity)
     for guild in bot.guilds:
         await guild.me.edit(nick="DaBaby")
@@ -43,7 +43,8 @@ async def on_ready():
 @bot.event
 async def on_application_command_error(ctx: discord.ApplicationContext, error: Exception):
     error_smol = str(error)
-    await ctx.respond("Uh oh! Error!\n```fix\n"+error_smol+"```")
+    if ctx.interaction is not None:
+        await ctx.respond(f"Uh oh! Error!\n```fix\n{error_smol}```")
     raise error
 
 @bot.event
