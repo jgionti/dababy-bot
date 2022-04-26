@@ -3,7 +3,7 @@ import random
 
 import discord
 from discord.ext import commands
-from lib import autocomplete, converterplus
+from lib import autocomplete, converterplus, chance
 
 #####################
 #      general      #
@@ -70,8 +70,8 @@ class General(commands.Cog):
     async def get_pog(self, member: discord.Member):
         d = self.bot.pogs
         if member.id not in d:
-            d[member.id] = random.choice([True,False])
-        if random.choice(range(1,100)) <= 25:
+            d[member.id] = chance.chance(50)
+        if chance.chance(25):
             d[member.id] = not d[member.id]
         return d[member.id]
 
@@ -128,16 +128,16 @@ class General(commands.Cog):
             members.append(dante)
             members.append(dante)
             members.append(dante)
-        num = random.choice(range(1,200))
+        num = chance.select_with_remainder(0.5, 5)
         name = random.choice(members).display_name
-        if num <= 10:
-            # Super sus
-            msg = "Yo, emergency meeting! **" + name + "** is **super sus!**"
-            fil = discord.File("resources/SuperSus.jpg")
-        elif num == 11:
+        if num == 0:
             # Mega sus
             msg = "Uh, oh no... this can't be right...\n**" + name + "** is **MEGA SUS!**"
             fil = discord.File("resources/MegaSus.mp4")
+        elif num == 1:
+            # Super sus
+            msg = "Yo, emergency meeting! **" + name + "** is **super sus!**"
+            fil = discord.File("resources/SuperSus.jpg")
         else:
             # Normal sus
             msg = "Ayo! **" + name + "** is sus!"
@@ -201,7 +201,7 @@ class General(commands.Cog):
         string = "You chose: **" + int_to_rps[p_int] + "**\n"
         string += "I chose: **" + int_to_rps[my_int] + "**\n\n"
         if p_int == 0:
-            bot_wins = random.choice([True, False])
+            bot_wins = chance.chance(50)
         elif my_int == 1:
             if p_int == 1: is_tie = True
             if p_int == 2: bot_wins = False

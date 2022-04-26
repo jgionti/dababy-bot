@@ -1,11 +1,10 @@
 import asyncio
-import random
 import time
 
 import discord
 import youtube_dl
-from discord.ext import commands
-from lib import autocomplete, timer
+from discord.ext import commands, tasks
+from lib import autocomplete, timer, chance
 
 #####################
 #       voice       #
@@ -53,13 +52,13 @@ class Voice(commands.Cog):
 
     # Joins the author's vc if not already in it
     # Return: None
-    async def join(self, ctx):
+    async def join(self, ctx: commands.Context):
         # Check if bot is connected to any vc
         if ctx.voice_client is None:
             await ctx.author.voice.channel.connect()
         # Check if bot is called to different vc
         elif ctx.me.voice.channel.id != ctx.author.voice.channel.id:
-            await ctx.voice_client.move_to(ctx.author.voice.channel)
+            await ctx.voice_client.move_to(ctx.author.voice.channel)            
 
     # Automatically plays the next song and adjusts the queue accordingly
     # Returns: None
@@ -77,8 +76,7 @@ class Voice(commands.Cog):
                 if ctx.voice_client is not None and ctx.voice_client.is_playing():
                     return
             if ctx.voice_client is not None and not ctx.voice_client.is_playing():
-                num = random.choice(range(1,100))
-                if num > 1: 
+                if chance.chance(1):
                     file = "resources/lets-go.mp3"
                 else: file = "resources/among-us.mp3"
                 ctx.voice_client.play(discord.FFmpegPCMAudio(file))
@@ -87,7 +85,7 @@ class Voice(commands.Cog):
 
     # Disconnects from a voice channel (returns whether successful)
     # Return: bool
-    async def disconnect(self, ctx):
+    async def disconnect(self, ctx: commands.Context):
         if ctx.voice_client and ctx.voice_client.is_connected:
             await ctx.voice_client.disconnect()
             return True
