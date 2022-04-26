@@ -9,6 +9,9 @@ class StolenLetterEvent(Event):
 
     Messages with the stolen letter are replaced with webhooks that
     remove all instances of the letter.
+
+    args:
+        [0] - stolen character
     """
     def __init__(self, bot):
         super().__init__(bot, aliases=["stolenletter"])

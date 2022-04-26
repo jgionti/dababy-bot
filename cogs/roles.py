@@ -95,7 +95,7 @@ class Roles(commands.Cog):
         for role in role_list:
             role_str += role.mention + "\n"
             mem_count_str += str(len(role.members)) + "\n"
-        embed = discord.Embed(color=ctx.me.color, title="Role List")
+        embed = discord.Embed(color=ctx.me.color, title=f"{str(len(role_list))} Roles in {ctx.guild.name}")
         embed.add_field(name="Role", value=role_str)
         embed.add_field(name="Members", value=mem_count_str)
         embed.set_footer(text="Use /role <role> to add/remove a role.")
@@ -104,7 +104,7 @@ class Roles(commands.Cog):
     # View for /role buttons
     class RoleView(discord.ui.View):
         def __init__(self, role, allowed_roles):
-            super().__init__(timeout=300)
+            super().__init__(timeout=1800)
             self.role = role
             self.message = None
             if role not in allowed_roles:
@@ -153,7 +153,13 @@ class Roles(commands.Cog):
         if role == "":
             await self.rolelist(ctx)
             return
-        rol = await converterplus.lookup_role(ctx, role)
+
+        rol = None
+        try:
+            rol = await converterplus.lookup_role(ctx, role)
+        except commands.RoleNotFound:
+            await ctx.respond("Role not found! 🤡", ephemeral = True)
+            return
         embed = await self.create_role_embed(rol)
         view = self.RoleView(rol, await self.get_auto_roles(ctx))
         intr: discord.Interaction = await ctx.respond(embed=embed, view=view)

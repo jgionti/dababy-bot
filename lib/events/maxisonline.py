@@ -1,4 +1,5 @@
 import discord
+from discord.ext import tasks
 from lib.events.event import Event
 from lib import converterplus
 
@@ -7,6 +8,9 @@ class MaxIsOnlineEvent(Event):
 
     Every time Cyanide#7815 changes status, the bot sends a gif
     corresponding to his latest status into the #max thread.
+
+    args:
+        [0] - interval between status posts
     """
     def __init__(self, bot):
         super().__init__(bot, aliases=["maxisonline"])
@@ -14,6 +18,10 @@ class MaxIsOnlineEvent(Event):
         self.max_thread = None
         self.max_member = None
         self.gif_str = ""
+
+    @tasks.loop(minutes=30)
+    async def post(self):
+        await self._post_status(self.max_member)
 
     # Update self.gif_str and post status of a member to #max
     async def _post_status(self, member: discord.Member):
@@ -52,13 +60,16 @@ class MaxIsOnlineEvent(Event):
         if self.max_member.status == None:
             self.max_member.status = self.max_member.desktop_status
         # Start event and post current status
-        await self._post_status(self.max_member)
+        self.post.start()
+        if len(args) > 0:
+            self.post.change_interval(minutes=float(args[0]))
         # Send starting reaction
-        await ctx.respond("\N{EYES} " + self.max_thread.mention)
+        await ctx.respond(f"👀 {self.max_thread.mention}")
 
         await super().start(ctx)
 
     async def end(self, ctx, args):
+        self.post.cancel()
         await self.max_thread.archive()
         self.max_thread = None
         self.max_member = None
@@ -71,7 +82,7 @@ class MaxIsOnlineEvent(Event):
             if before.id == self.max_member.id:
                 if before.guild.id == 730196305124655176:
                     if (before.status != discord.Status.online and after.status == discord.Status.online)\
-                        or (before.status != discord.Status.offline and after.status == discord.Status.offline)\
-                        or (before.status != discord.Status.idle and after.status == discord.Status.idle)\
-                        or (before.status != discord.Status.dnd and after.status == discord.Status.dnd):
-                        await self._post_status(after)
+                            or (before.status != discord.Status.offline and after.status == discord.Status.offline)\
+                            or (before.status != discord.Status.idle and after.status == discord.Status.idle)\
+                            or (before.status != discord.Status.dnd and after.status == discord.Status.dnd):
+                        self.post.restart()
