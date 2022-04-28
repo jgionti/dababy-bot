@@ -1,5 +1,5 @@
 import discord
-from discord.ext import commands
+from discord.ext import commands, tasks
 from lib import autocomplete
 import lib.events.event_factory as event_factory
 
@@ -13,11 +13,25 @@ class EventManager(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
+        # Get events and load them
         self.events = event_factory.get_events(bot)
+        self.load()
 
     #######################
     #  HELPER FUNCTIONS   #
     #######################
+
+    @tasks.loop(minutes=60)
+    async def autosave(self):
+        self.save()
+
+    def save(self):
+        for e in self.events:
+            e.save()
+
+    def load(self):
+        for e in self.events:
+            e.load()
 
     # Listener for user messages
     @commands.Cog.listener()
@@ -61,6 +75,7 @@ class EventManager(commands.Cog):
         for e in self.events:
             if event.lower() in e.aliases:
                 await e.toggle(ctx, a)
+                e.save()
                 found = True
                 break
 

@@ -1,6 +1,7 @@
 import re
 
 import discord
+from lib.database import Database
 from lib.events.event import Event
 
 
@@ -37,6 +38,21 @@ class StolenLetterEvent(Event):
     async def end(self, ctx, args):
         await super().end(ctx, args)
         await ctx.respond("Let's go! The letter \'" + self.stolen_char + "\' has been found again!")
+
+    def save(self):
+        data = {
+            "is_active": self.is_active,
+            "stolen_char": self.stolen_char,
+        }
+        db = Database()
+        db.write("events", self.aliases[0], data)
+
+    def load(self):
+        db = Database()
+        data = db.read("events", self.aliases[0])
+        if data:
+            self.is_active = data["is_active"]
+            self.stolen_char = data["stolen_char"]
 
     async def on_message(self, message: discord.Message):
         if self.is_active:

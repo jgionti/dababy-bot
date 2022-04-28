@@ -14,7 +14,6 @@ class MaxIsOnlineEvent(Event):
     """
     def __init__(self, bot):
         super().__init__(bot, aliases=["maxisonline"])
-        self.has_max_event = False
         self.max_thread = None
         self.max_member = None
         self.gif_str = ""

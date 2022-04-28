@@ -1,5 +1,8 @@
-import discord
 from typing import List
+
+import discord
+from lib.database import Database
+
 
 class Event:
     """Base class for server events.
@@ -32,6 +35,27 @@ class Event:
         """Coroutine to end the event.
         """
         self.is_active = False
+
+    def save(self):
+        """Write class contents to the database.
+
+        Subclasses wishing to change this method must not
+        call its `super()` version.
+        """
+        data = {"is_active": self.is_active}
+        db = Database()
+        db.write("events", self.aliases[0], data)
+
+    def load(self):
+        """Read class contents from the database.
+
+        Subclasses wishing to change this method must not
+        call its `super()` version.
+        """
+        db = Database()
+        data = db.read("events", self.aliases[0])
+        if data:
+            self.is_active = data["is_active"]
 
     async def on_message(self, message: discord.Message):
         """Coroutine to execute with the on_message() event.
