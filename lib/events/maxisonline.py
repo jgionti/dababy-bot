@@ -3,6 +3,8 @@ from discord.ext import tasks
 from lib.events.event import Event
 from lib import converterplus
 
+INTERVAL = 30.0
+
 class MaxIsOnlineEvent(Event):
     """Event class for the Max is Online event.
 
@@ -14,11 +16,12 @@ class MaxIsOnlineEvent(Event):
     """
     def __init__(self, bot):
         super().__init__(bot, aliases=["maxisonline"])
+        self.interval = INTERVAL
         self.max_thread = None
         self.max_member = None
         self.gif_str = ""
 
-    @tasks.loop(minutes=30)
+    @tasks.loop(minutes=INTERVAL)
     async def post(self):
         await self._post_status(self.max_member)
 
@@ -59,9 +62,12 @@ class MaxIsOnlineEvent(Event):
         if self.max_member.status == None:
             self.max_member.status = self.max_member.desktop_status
         # Start event and post current status
-        self.post.start()
         if len(args) > 0:
-            self.post.change_interval(minutes=float(args[0]))
+            self.interval = float(args[0])
+        else:
+            self.interval = INTERVAL
+        self.post.change_interval(minutes=self.interval)
+        self.post.start()
         # Send starting reaction
         await ctx.respond(f"👀 {self.max_thread.mention}")
 
@@ -74,6 +80,13 @@ class MaxIsOnlineEvent(Event):
         self.max_member = None
         await ctx.respond("\N{SEE-NO-EVIL MONKEY}")
         await super().end(ctx)
+
+    def get_dict(self):
+        parent = super().get_dict()
+        parent.update({
+            "interval" : self.interval
+        })
+        return parent
 
     async def on_presence_update(self, before: discord.Member, after: discord.Member):
         if self.is_active:

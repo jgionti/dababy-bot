@@ -8,7 +8,7 @@ from lib import autocomplete, converterplus, timer
 #       roles       #
 #####################
 # Autonomous role management
-# Any role underneath Brazil and above @everyone is eligible
+# Any role underneath @Brazil and above @everyone is eligible
 
 class Roles(commands.Cog):
     def __init__(self, bot):
