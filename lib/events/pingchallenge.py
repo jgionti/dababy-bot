@@ -1,7 +1,6 @@
 import asyncio
 
 import discord
-from lib.database import Database
 from lib.events.event import Event
 
 
@@ -33,20 +32,12 @@ class PingChallengeEvent(Event):
         self.ping_winner = None
         await super().end(ctx)
 
-    def save(self):
-        data = {
-            "is_active": self.is_active,
+    def get_dict(self):
+        parent = super().get_dict()
+        parent.update({
             "ping_map" : self.ping_map
-        }
-        db = Database()
-        db.write("events", self.aliases[0], data)
-
-    def load(self):
-        db = Database()
-        data = db.read("events", self.aliases[0])
-        if data:
-            self.is_active = data["is_active"]
-            self.ping_map = data["ping_map"]
+        })
+        return parent
 
     async def on_message(self, message: discord.Message):
         if self.is_active:

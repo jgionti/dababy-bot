@@ -1,7 +1,6 @@
 from typing import List
 
 import discord
-from lib.database import Database
 
 
 class Event:
@@ -38,24 +37,28 @@ class Event:
 
     def save(self):
         """Write class contents to the database.
-
-        Subclasses wishing to change this method must not
-        call its `super()` version.
         """
-        data = {"is_active": self.is_active}
-        db = Database()
-        db.write("events", self.aliases[0], data)
+        data = self.get_dict()
+        self.bot.db.write("events", self.aliases[0], data)
 
     def load(self):
         """Read class contents from the database.
-
-        Subclasses wishing to change this method must not
-        call its `super()` version.
         """
-        db = Database()
-        data = db.read("events", self.aliases[0])
+        data = self.bot.db.read("events", self.aliases[0])
+        # If document found, set all attributes to its values
         if data:
-            self.is_active = data["is_active"]
+            for k, v in data.items():
+                setattr(self, k, v)
+        # If document not in collection, add empty version to it
+        else:
+            self.save()
+
+    def get_dict(self):
+        """Get class attributes in dictionary form.
+
+        Subclasses should update the `super()` dict.
+        """
+        return {"is_active": self.is_active}
 
     async def on_message(self, message: discord.Message):
         """Coroutine to execute with the on_message() event.
