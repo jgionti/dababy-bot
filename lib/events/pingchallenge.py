@@ -27,10 +27,17 @@ class PingChallengeEvent(Event):
         else:
             await ctx.send("Congratulations, " + self.ping_winner.mention + "! You've won the Mr. Ping Challenge! Now for your prize...")
             await asyncio.sleep(5)
-            await self.bot.get_cog("Roles").brazil(ctx, str(self.ping_winner.id), time=600, reason="You pinged everyone 19 times!")
+            await self.bot.get_cog("Roles").brazil(ctx, str(self.ping_winner.id), time=300, reason="You pinged everyone 19 times!")
         self.ping_map = {}
         self.ping_winner = None
         await super().end(ctx)
+
+    def get_dict(self):
+        parent = super().get_dict()
+        parent.update({
+            "ping_map" : self.ping_map
+        })
+        return parent
 
     async def on_message(self, message: discord.Message):
         if self.is_active:

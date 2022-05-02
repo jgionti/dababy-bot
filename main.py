@@ -4,9 +4,21 @@ from os.path import isfile, join
 import discord
 from discord.ext import commands
 
+from lib.database import Database
+
 
 def bot_init():
     bot = commands.Bot("$", intents=discord.Intents.all())
+
+    # Load data from .env
+    token = os.environ.get("BOT_TOKEN")
+
+    # "static" variables
+    # Placed in bot to prevent overwrite on $reload
+    bot.token = token    # Discord token             str
+    bot.phrases = []     # Dababy lines              List[str]
+    bot.pogs = {}        # Map of id:pogs            Dict{int:bool}
+    bot.db = Database()  # Global database
 
     # Load all cogs in 'cogs' folder
     dir = join(os.getcwd(), "cogs")
@@ -16,15 +28,6 @@ def bot_init():
             extensions.append("cogs." + file.removesuffix(".py"))
     for ext in extensions:
         bot.load_extension(ext)
-
-    # Load data from .env
-    token = os.environ.get("BOT_TOKEN")
-
-    # "static" variables
-    # Placed in bot to prevent overwrite on $reload
-    bot.token = token   # Discord token             str
-    bot.phrases = []    # Dababy lines              List[str]
-    bot.pogs = {}       # Map of id:pogs            Dict{int:bool}
 
     return bot
 

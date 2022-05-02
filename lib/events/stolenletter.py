@@ -38,6 +38,13 @@ class StolenLetterEvent(Event):
         await super().end(ctx, args)
         await ctx.respond("Let's go! The letter \'" + self.stolen_char + "\' has been found again!")
 
+    def get_dict(self):
+        parent = super().get_dict()
+        parent.update({
+            "stolen_char" : self.stolen_char
+        })
+        return parent
+
     async def on_message(self, message: discord.Message):
         if self.is_active:
             if self.stolen_char in message.content.lower() and message.webhook_id == None:

@@ -3,14 +3,14 @@ import time
 
 import discord
 import youtube_dl
-from discord.ext import commands, tasks
+from discord.ext import commands
 from lib import autocomplete, timer, chance
 
 #####################
 #       voice       #
 #####################
 # All voice functions
-# Includes Youtube radio functionality
+# Includes Youtube music functionality
 
 class Voice(commands.Cog):
     def __init__(self, bot):
@@ -28,23 +28,7 @@ class Voice(commands.Cog):
     # Save info on join/leave
     @commands.Cog.listener()
     async def on_voice_state_update(self, member: discord.Member, before: discord.VoiceState, after: discord.VoiceState):
-        action = ""
-        channel = None
-
-        # Check for join
-        if after.channel and (not before.channel or before.channel.id != after.channel.id):
-            action = "joined"
-            channel = after.channel
-        # Check for leave
-        elif before.channel and (not after.channel or after.channel.id != before.channel.id):
-            action = "left"
-            channel = before.channel
-        
-        if action != "":
-            log_data = {"member" : member.mention, "action" : action, "channel" : channel.name, "time" : time.time()}
-            self.vc_log.insert(0, log_data)
-            if (len(self.vc_log) > 5): self.vc_log.pop()
-
+        await self.update_vc_log(member, before, after)
 
     #######################
     #  HELPER FUNCTIONS   #
@@ -58,30 +42,7 @@ class Voice(commands.Cog):
             await ctx.author.voice.channel.connect()
         # Check if bot is called to different vc
         elif ctx.me.voice.channel.id != ctx.author.voice.channel.id:
-            await ctx.voice_client.move_to(ctx.author.voice.channel)            
-
-    # Automatically plays the next song and adjusts the queue accordingly
-    # Returns: None
-    def play_next(self, ctx: commands.Context):
-        self.np = None
-        if len(self.q) > 0:
-            info = self.q.pop(0)
-            source = info['formats'][0]['url']
-            ctx.voice_client.play(discord.FFmpegPCMAudio(source), after=lambda e: self.play_next(ctx))
-            self.np = info
-        else:
-            # Disconnect after some time of inactivity
-            for i in range(90):
-                time.sleep(1)
-                if ctx.voice_client is not None and ctx.voice_client.is_playing():
-                    return
-            if ctx.voice_client is not None and not ctx.voice_client.is_playing():
-                if chance.chance(1):
-                    file = "resources/lets-go.mp3"
-                else: file = "resources/among-us.mp3"
-                ctx.voice_client.play(discord.FFmpegPCMAudio(file))
-                time.sleep(3.2)
-                asyncio.run_coroutine_threadsafe(self.disconnect(ctx), self.bot.loop)
+            await ctx.voice_client.move_to(ctx.author.voice.channel)
 
     # Disconnects from a voice channel (returns whether successful)
     # Return: bool
@@ -136,11 +97,52 @@ class Voice(commands.Cog):
         embed.set_thumbnail(url=url)
         return embed
 
-
     # Generates a Discord-formatted hyperlink for a particular song
     # Return: str
     def hyperlink(self, song_info):
         return "["+song_info["title"]+"]" + "("+song_info["webpage_url"]+")"
+
+    # Update VoiceState changelog for /whojust
+    async def update_vc_log(self, member: discord.Member, before: discord.VoiceState, after: discord.VoiceState):
+        action = ""
+        channel = None
+
+        # Check for join
+        if after.channel and (not before.channel or before.channel.id != after.channel.id):
+            action = "joined"
+            channel = after.channel
+        # Check for leave
+        elif before.channel and (not after.channel or after.channel.id != before.channel.id):
+            action = "left"
+            channel = before.channel
+        
+        if action != "":
+            log_data = {"member" : member.mention, "action" : action, "channel" : channel.name, "time" : time.time()}
+            self.vc_log.insert(0, log_data)
+            if (len(self.vc_log) > 5): self.vc_log.pop()
+
+    # Automatically plays the next song and adjusts the queue accordingly
+    # Returns: None
+    def play_next(self, ctx: commands.Context):
+        self.np = None
+        if len(self.q) > 0:
+            info = self.q.pop(0)
+            source = info['formats'][0]['url']
+            ctx.voice_client.play(discord.FFmpegPCMAudio(source), after=lambda e: self.play_next(ctx))
+            self.np = info
+        else:
+            # Disconnect after some time of inactivity
+            for i in range(90):
+                time.sleep(1)
+                if ctx.voice_client is not None and ctx.voice_client.is_playing():
+                    return
+            if ctx.voice_client is not None and not ctx.voice_client.is_playing():
+                if chance.chance(1):
+                    file = "resources/among-us.mp3"
+                else: file = "resources/lets-go.mp3"
+                ctx.voice_client.play(discord.FFmpegPCMAudio(file))
+                time.sleep(3.2)
+                asyncio.run_coroutine_threadsafe(self.disconnect(ctx), self.bot.loop)
 
     #######################
     #       COMMANDS      #
@@ -148,7 +150,7 @@ class Voice(commands.Cog):
 
     # Queues up and plays a YouTube video (by URL or search)
     @commands.slash_command(guild_ids = [730196305124655176])
-    async def play(self, ctx,
+    async def play(self, ctx: discord.ApplicationContext,
         url: discord.Option(str, "URL or YouTube search term of the audio to queue up and play.", autocomplete = autocomplete.get_yt)
     ):
         """Add a video to the queue. Supports URL or YouTube search."""

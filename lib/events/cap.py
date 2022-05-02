@@ -1,5 +1,6 @@
 import discord
 from lib import converterplus, chance
+from lib.database import Database
 from lib.events.event import Event
 
 

@@ -1,5 +1,7 @@
-import discord
 from typing import List
+
+import discord
+
 
 class Event:
     """Base class for server events.
@@ -32,6 +34,31 @@ class Event:
         """Coroutine to end the event.
         """
         self.is_active = False
+
+    def save(self):
+        """Write class contents to the database.
+        """
+        data = self.get_dict()
+        self.bot.db.write("events", self.aliases[0], data)
+
+    def load(self):
+        """Read class contents from the database.
+        """
+        data = self.bot.db.read("events", self.aliases[0])
+        # If document found, set all attributes to its values
+        if data:
+            for k, v in data.items():
+                setattr(self, k, v)
+        # If document not in collection, add empty version to it
+        else:
+            self.save()
+
+    def get_dict(self):
+        """Get class attributes in dictionary form.
+
+        Subclasses should update the `super()` dict.
+        """
+        return {"is_active": self.is_active}
 
     async def on_message(self, message: discord.Message):
         """Coroutine to execute with the on_message() event.
