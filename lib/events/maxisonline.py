@@ -81,6 +81,10 @@ class MaxIsOnlineEvent(Event):
         await ctx.respond("\N{SEE-NO-EVIL MONKEY}")
         await super().end(ctx)
 
+    def load(self):
+        # Do nothing in this Event subclass; loading tasks not implemented
+        pass
+
     def get_dict(self):
         parent = super().get_dict()
         parent.update({

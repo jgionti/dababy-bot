@@ -17,12 +17,16 @@ class EventManager(commands.Cog):
         self.events = event_factory.get_events(bot)
         self.load()
 
+        # Start autosaving
+        # self.autosave.start()
+
     #######################
     #  HELPER FUNCTIONS   #
     #######################
 
     @tasks.loop(minutes=60)
     async def autosave(self):
+        # Task not currently active; behavior with Heroku is unknown
         self.save()
 
     def save(self):
