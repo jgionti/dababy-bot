@@ -9,23 +9,15 @@ class Database:
     This database uses MongoDB. 
     It follows the hierarchy: Client > Database > Collection > Document
 
-    Each document has a _name used to identify itself.
+    Each document has a _id used to identify itself.
     """
     def __init__(self):
-        """Creates a connection to the main database.
+        """Instantiates a Database class and creates a connection to
+        the main database.
         """
         url = os.environ.get("MONGO_URL")
         client = pymongo.MongoClient(url)
         self.db = client["main"]
-
-    # def add(self, collection: str, data):
-    #     """Attempts to add data to a collection.
-
-    #     This function does not use the '_name' convention, which
-    #     might be useful.
-    #     """
-    #     col = self.db[collection]
-    #     col.insert_one(data)
 
     def write(self, collection: str, name: str = "", data = {}):
         """Attempts to write a document into a collection.
@@ -35,10 +27,10 @@ class Database:
         """
         col = self.db[collection]
         if name != "":
-            doc = {"_name" : name}
+            doc = {"_id" : name}
             doc.update(data)
         # Document exists in collection
-        query = {"_name" : name}
+        query = {"_id" : name}
         if col.find_one(query) is not None:
             doc = {"$set" : doc}
             col.update_one(query, doc)
@@ -53,14 +45,14 @@ class Database:
         """
         col = self.db[collection]
         if name != "":
-            q = {"_name" : name}
+            q = {"_id" : name}
             q.update(query)
         return col.find_one(q)
 
     def delete(self, collection: str, name: str = "", query = {}):
         col = self.db[collection]
         if name != "":
-            q = {"_name" : name}
+            q = {"_id" : name}
             q.update(query)
         return col.delete_one(q)
 
