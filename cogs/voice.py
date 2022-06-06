@@ -228,7 +228,10 @@ class Voice(commands.Cog):
         intr: discord.Interaction = await ctx.respond(f"🛠 **Converting text...**")
         tts = gtts.gTTS(text)
         filename = f"tts_{ctx.author.name.lower()}_{str(random.randint(10000000, 99999999))}.mp3"
-        filepath = f"resources/tts_cache/{filename}"
+        dir = "resources/tts_cache/"
+        filepath = f"{dir}/{filename}"
+        if not os.path.exists(dir):
+            os.makedirs(dir)
         tts.save(filepath)
         # Dreadffully hardcoded because /play code was also hardcoded! Too bad!
         info = {}
