@@ -233,13 +233,13 @@ class Voice(commands.Cog):
         if not os.path.exists(dir):
             os.makedirs(dir)
         tts.save(filepath)
-        # Dreadffully hardcoded because /play code was also hardcoded! Too bad!
+        # Dreadfully hardcoded because /play code was also hardcoded! Too bad!
         info = {}
         info['formats'] = [None]
         info['formats'][0] = {}
         info['formats'][0]['url'] = filepath
         info["requested_by"] = ctx.author
-        info["title"] = text[:200] + (text[200:] and "...")
+        info["title"] = "`TTS` " + text[:200] + (text[200:] and "...")
         info["thumbnail"] = "https://i.ytimg.com/vi/2ZIpFytCSVc/hqdefault.jpg"
 
         await self.join_and_play(ctx, intr, info)
