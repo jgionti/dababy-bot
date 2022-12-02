@@ -1,5 +1,3 @@
-git+https://github.com/Pycord-Development/pycord@v2.0.0-beta.7#egg=py-cord[voice]
-youtube_dl
-youtube_search
+#git+https://github.com/Pycord-Development/pycord@v2.0.0-beta.7#egg=py-cord[voice]
+py-cord
 pymongo[srv]
-gtts

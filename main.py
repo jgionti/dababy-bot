@@ -30,7 +30,7 @@ async def on_interaction(interaction: discord.Interaction):
         await bot.process_application_commands(interaction)
     else:
         chn = await commands.TextChannelConverter().convert(await bot.get_application_context(interaction), "dababy")
-        await interaction.response.send_message(f"❌ Use commands in{chn.mention}!", ephemeral=True)
+        await interaction.response.send_message(f"❌ Use commands in {chn.mention}!", ephemeral=True)
 
 # Start the bot
 bot.run(bot.token)
