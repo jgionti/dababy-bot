@@ -1,4 +1,4 @@
-from lib.database import Database
+from src.database import Database
 
 db = Database()
 # db.write("test", "Chungus", {"testest" : 123})

@@ -3,7 +3,7 @@ import time
 import discord
 import youtube_dl
 from discord.ext import commands
-from lib import timer
+from src import timer
 
 #####################
 #       voice       #

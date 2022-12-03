@@ -1,7 +1,7 @@
 import discord
 from discord.ext import commands
 
-from lib.dababy_bot import DaBabyBot
+from src.dababy_bot import DaBabyBot
 
 # Initialize bot
 bot = DaBabyBot()

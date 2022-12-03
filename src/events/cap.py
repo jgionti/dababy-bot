@@ -1,7 +1,7 @@
 import discord
-from lib import converterplus, chance
-from lib.database import Database
-from lib.events.event import Event
+from src import converterplus, chance
+from src.database import Database
+from src.events.event import Event
 
 
 class CapEvent(Event):

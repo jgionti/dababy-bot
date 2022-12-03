@@ -1,7 +1,7 @@
 import discord
 from discord.ext import commands, tasks
-from lib import autocomplete
-import lib.events.event_factory as event_factory
+from src import autocomplete
+import src.events.event_factory as event_factory
 
 #####################
 #    eventmanager   #

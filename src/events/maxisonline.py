@@ -1,7 +1,7 @@
 import discord
 from discord.ext import tasks
-from lib.events.event import Event
-from lib import converterplus
+from src.events.event import Event
+from src import converterplus
 
 INTERVAL = 30.0
 

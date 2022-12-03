@@ -1,8 +1,8 @@
 import discord
 import youtube_search
 
-import lib.events.event_factory as event_factory
-from lib.events.event import Event
+import src.events.event_factory as event_factory
+from src.events.event import Event
 
 #####################
 #    autocomplete   #

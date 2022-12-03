@@ -2,7 +2,7 @@ import asyncio
 
 import discord
 from discord.ext import commands
-from lib import autocomplete, converterplus, timer
+from src import autocomplete, converterplus, timer
 
 #####################
 #       roles       #

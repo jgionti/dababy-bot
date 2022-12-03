@@ -1,11 +1,11 @@
 from typing import List
 
 import discord
-from lib.events.cap import CapEvent
-from lib.events.event import Event
-from lib.events.maxisonline import MaxIsOnlineEvent
-from lib.events.pingchallenge import PingChallengeEvent
-from lib.events.stolenletter import StolenLetterEvent
+from src.events.cap import CapEvent
+from src.events.event import Event
+from src.events.maxisonline import MaxIsOnlineEvent
+from src.events.pingchallenge import PingChallengeEvent
+from src.events.stolenletter import StolenLetterEvent
 
 
 def get_events(bot: discord.Bot) -> List[Event]:

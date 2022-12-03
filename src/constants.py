@@ -1,0 +1,3 @@
+GUILD_IDS = [
+    730196305124655176, # Main server
+]

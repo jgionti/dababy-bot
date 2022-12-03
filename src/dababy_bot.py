@@ -4,7 +4,7 @@ from os.path import isfile, join
 import discord
 from discord.ext import commands
 
-from lib.database import Database
+from src.database import Database
 
 class DaBabyBot(commands.Bot):
     def __init__(self):
@@ -22,10 +22,10 @@ class DaBabyBot(commands.Bot):
         """Bot database for maintaining persistent data"""
 
         # Load all cogs from 'cogs' folder
-        dir = join(os.getcwd(), "cogs")
+        dir = join(os.getcwd(), "src", "cogs")
         extensions = []
         for file in os.listdir(dir):
             if isfile(join(dir, file)) and not file.startswith("_"):
-                extensions.append("cogs." + file.removesuffix(".py"))
+                extensions.append("src.cogs." + file.removesuffix(".py"))
         for ext in extensions:
             self.load_extension(ext)

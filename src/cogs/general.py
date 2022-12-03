@@ -3,7 +3,7 @@ import random
 
 import discord
 from discord.ext import commands
-from lib import autocomplete, converterplus, chance
+from src import autocomplete, converterplus, chance
 
 #####################
 #      general      #

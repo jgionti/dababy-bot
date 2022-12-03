@@ -1,7 +1,7 @@
 import re
 
 import discord
-from lib.events.event import Event
+from src.events.event import Event
 
 
 class StolenLetterEvent(Event):
