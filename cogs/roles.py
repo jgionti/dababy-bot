@@ -27,11 +27,10 @@ class Roles(commands.Cog):
     # Get the roles the bot should handle
     # Return: List[Role]
     async def get_auto_roles(self, ctx):
-        dababy_role = await converterplus.lookup_role(ctx, "DaBaby")
         brazil_role = await self.get_brazil_role(ctx)
         auto_roles = []
         for role in ctx.guild.roles:
-            if role.position < dababy_role.position and role.position != brazil_role.position and role.position > 0:
+            if role.position < brazil_role.position and role.position > 0:
                 auto_roles.append(role)
         auto_roles.reverse()
         auto_roles.sort(key=self.role_sort)
@@ -167,7 +166,7 @@ class Roles(commands.Cog):
 
     # Gives user the Brazil role for some time (in seconds)
     @commands.slash_command(guild_ids = [730196305124655176])
-    @discord.has_role("Admin")
+    @commands.has_role("Admin")
     async def brazil(self, ctx,
         member: discord.Option(str, "Server member to send to Brazil", autocomplete = autocomplete.get_members),
         time: discord.Option(float, "How long to keep the member in Brazil (in seconds)", required = False, default = 60),

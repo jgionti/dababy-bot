@@ -50,10 +50,40 @@ class Database:
         return col.find_one(q)
 
     def delete(self, collection: str, name: str = "", query = {}):
+        """Attempts to delete data from a collection."""
         col = self.db[collection]
         if name != "":
             q = {"_id" : name}
             q.update(query)
         return col.delete_one(q)
+
+    def read_field(self, collection: str, name: str, field: str):
+        """Attempts to read a field from a document.
+
+        Returns: Optional[Any]
+        """
+        d = self.read(collection, name)
+        if d is not None:
+            return d[field]
+        return None
+        
+    def update_field(self, collection: str, name: str, field: str, value):
+        """Attempts to update a field within a document.
+        
+        Does nothing if the document is not found.
+        """
+        d = self.read(collection, name)
+        if d is not None:
+            d[field] = value
+            self.write(collection, name, d)
+
+    def add_to_field(self, collection: str, name: str, field: str, add):
+        """Attempts to add to a field within a document.
+        
+        Does nothing if the document is not found.
+        """
+        # TODO: Make if not!!!
+        val = self.read_field(collection, name, field)
+        self.update_field(collection, name, field, val + add)
 
     # For future: can add write_many and read_many should the need arise

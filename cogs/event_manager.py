@@ -55,7 +55,7 @@ class EventManager(commands.Cog):
 
     # Main event command
     @commands.slash_command(guild_ids = [730196305124655176])
-    @discord.has_role("Admin")
+    @commands.has_role("Admin")
     async def event(self, ctx,
         event: discord.Option(str, "Event to toggle, or 'stop' to end all events.", autocomplete = autocomplete.get_server_events),
         args: discord.Option(str, "Space-separated event arguments.", required = False, default = "")

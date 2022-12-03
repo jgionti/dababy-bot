@@ -1,13 +1,9 @@
-import asyncio
 import time
 
 import discord
 import youtube_dl
 from discord.ext import commands
-from lib import autocomplete, timer, chance
-import gtts
-import random
-import os
+from lib import timer
 
 #####################
 #       voice       #
