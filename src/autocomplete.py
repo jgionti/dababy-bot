@@ -1,5 +1,4 @@
 import discord
-import youtube_search
 
 import src.events.event_factory as event_factory
 from src.events.event import Event
