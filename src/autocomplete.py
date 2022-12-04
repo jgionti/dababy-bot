@@ -29,18 +29,6 @@ def get_roles(ctx: discord.AutocompleteContext):
             arr.append(role.name)
     return _autocomplete(arr, ctx.options["role"])
 
-def get_yt(ctx: discord.AutocompleteContext):
-    arr = []
-    arr.append(ctx.options["url"])
-    search = ctx.options["url"]
-    ytsearch = youtube_search.YoutubeSearch(search, max_results=5)
-    for vid in ytsearch.videos:
-        str = vid["id"] + " | " + vid["channel"] + ": \"" + vid["title"] + '\"'
-        str = str[:96] + (str[96:] and "...")
-        arr.append(str)
-    
-    return _autocomplete(arr, "")
-
 def get_server_events(ctx: discord.AutocompleteContext):
     arr = []
     arr.append("stop")
