@@ -1,6 +1,8 @@
 import discord
 from discord.ext import commands
 
+from src.constants import GUILD_IDS
+
 #####################
 #        poll       #
 #####################
@@ -20,7 +22,7 @@ class Poll(commands.Cog):
         return embed
 
     # Use reactions to host a poll; currently untimed
-    @commands.slash_command(guild_ids = [730196305124655176])
+    @commands.slash_command(guild_ids = GUILD_IDS)
     async def poll( self, ctx,
         question: discord.Option(str, "Question to ask"),
         op1 : discord.Option(str, "Option 1", required = False, default = ""),

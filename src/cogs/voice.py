@@ -3,6 +3,7 @@ import time
 import discord
 from discord.ext import commands
 from src import timer
+from src.constants import GUILD_IDS
 
 #####################
 #       voice       #
@@ -52,7 +53,7 @@ class Voice(commands.Cog):
     #######################
 
     # Send who just joined or left the vc
-    @commands.slash_command(guild_ids = [730196305124655176])
+    @commands.slash_command(guild_ids = GUILD_IDS)
     async def vclog(self, ctx):
         """Find out who recently joined or left the voice channel."""
         if len(self.vc_log) == 0:

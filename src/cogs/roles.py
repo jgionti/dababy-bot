@@ -3,6 +3,7 @@ import asyncio
 import discord
 from discord.ext import commands
 from src import autocomplete, converterplus, timer
+from src.constants import GUILD_IDS
 
 #####################
 #       roles       #
@@ -144,7 +145,7 @@ class Roles(commands.Cog):
     #######################
 
     # Displays info about a role and the buttons to do it
-    @commands.slash_command(guild_ids = [730196305124655176])
+    @commands.slash_command(guild_ids = GUILD_IDS)
     async def role(self, ctx: discord.ApplicationContext,
         role: discord.Option(str, "Role to view info about", required = False, default = "", autocomplete = autocomplete.get_roles)
     ):
@@ -165,7 +166,7 @@ class Roles(commands.Cog):
         view.message = await intr.original_message()
 
     # Gives user the Brazil role for some time (in seconds)
-    @commands.slash_command(guild_ids = [730196305124655176])
+    @commands.slash_command(guild_ids = GUILD_IDS)
     @commands.has_role("Admin")
     async def brazil(self, ctx,
         member: discord.Option(str, "Server member to send to Brazil", autocomplete = autocomplete.get_members),

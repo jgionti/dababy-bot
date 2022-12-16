@@ -1,6 +1,7 @@
 import discord
 from discord.ext import commands, tasks
 from src import autocomplete
+from src.constants import GUILD_IDS
 import src.events.event_factory as event_factory
 
 #####################
@@ -54,7 +55,7 @@ class EventManager(commands.Cog):
     #######################
 
     # Main event command
-    @commands.slash_command(guild_ids = [730196305124655176])
+    @commands.slash_command(guild_ids = GUILD_IDS)
     @commands.has_role("Admin")
     async def event(self, ctx,
         event: discord.Option(str, "Event to toggle, or 'stop' to end all events.", autocomplete = autocomplete.get_server_events),

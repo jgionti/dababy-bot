@@ -4,6 +4,7 @@ import random
 import discord
 from discord.ext import commands
 from src import autocomplete, converterplus, chance
+from src.constants import GUILD_IDS
 
 #####################
 #      general      #
@@ -95,13 +96,13 @@ class General(commands.Cog):
     #######################
 
     # Basic command, useful for testing connection
-    @commands.slash_command(guild_ids = [730196305124655176])
+    @commands.slash_command(guild_ids = GUILD_IDS)
     async def ping(self, ctx):
         """Displays the bot's latency."""
         await ctx.respond("Pong! Latency is " + str(int(self.bot.latency*1000)) + " ms.")
     
     # Sends a random dababy line
-    @commands.slash_command(guild_ids = [730196305124655176])
+    @commands.slash_command(guild_ids = GUILD_IDS)
     async def dababy(self, ctx,
         message: discord.Option(str, "What you want to say to DaBaby", required = False)
     ):
@@ -119,7 +120,7 @@ class General(commands.Cog):
         else: await ctx.respond(msg)
 
     # States that a random online member is suspicious, slightly weighted toward Dante
-    @commands.slash_command(guild_ids = [730196305124655176])
+    @commands.slash_command(guild_ids = GUILD_IDS)
     async def sus(self, ctx):
         """States that a random server member is suspicious."""
         members = await self.get_online_members(ctx)
@@ -145,7 +146,7 @@ class General(commands.Cog):
         await ctx.respond(content=msg, file=fil)
 
     # States whether a given member is poggers
-    @commands.slash_command(guild_ids = [730196305124655176])
+    @commands.slash_command(guild_ids = GUILD_IDS)
     async def pog(self, ctx, 
         member: discord.Option(str, "Server member to be judged by DaBaby", required = False, default = "me", autocomplete = autocomplete.get_members)
     ):
@@ -157,7 +158,7 @@ class General(commands.Cog):
         else: await ctx.respond(mem.display_name + " is **not pog!** That's disgusting!!!")
 
     # Displays info about a particular member
-    @commands.slash_command(guild_ids = [730196305124655176])
+    @commands.slash_command(guild_ids = GUILD_IDS)
     async def info(self, ctx, 
         member: discord.Option(str, "Server member to get info about", required = False, default = "me", autocomplete = autocomplete.get_members)
     ):
@@ -178,7 +179,7 @@ class General(commands.Cog):
             await interact.edit_original_message(content="", embed=embed)
 
     # Rock paper scissors game
-    @commands.slash_command(guild_ids = [730196305124655176])
+    @commands.slash_command(guild_ids = GUILD_IDS)
     async def rps(self, ctx,
         choice: discord.Option(str, "", autocomplete=discord.utils.basic_autocomplete(["rock", "paper", "scissors"]))
     ):

@@ -2,6 +2,7 @@ import discord
 from discord.ext import commands
 
 from src.dababy_bot import DaBabyBot
+from src.constants import GLOBAL_COMMANDS
 
 # Initialize bot
 bot = DaBabyBot()
@@ -24,9 +25,8 @@ async def on_application_command_error(ctx: discord.ApplicationContext, error: E
 
 @bot.event
 async def on_interaction(interaction: discord.Interaction):
-    global_cmds = ["poll", "role"]
     if (interaction.channel.name == "dababy" or
-            interaction.data["name"] in global_cmds):
+            interaction.data["name"] in GLOBAL_COMMANDS):
         await bot.process_application_commands(interaction)
     else:
         chn = await commands.TextChannelConverter().convert(await bot.get_application_context(interaction), "dababy")
