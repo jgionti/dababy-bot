@@ -63,8 +63,7 @@ class Voice(commands.Cog):
         msg = "Here's the scoop:"
         for data in self.vc_log:
             timestr = timer.get_timestr(int(time.time() - data["time"]))
-            timestamp = time.strftime('%m/%d/%Y, %H:%M:%S', time.localtime(data["time"]))
-            msg += f"\n{data['member']} {data['action']} {data['channel']} {timestr} ago ({timestamp})."
+            msg += f"\n{data['member']} {data['action']} {data['channel']} {timestr} ago."
         await ctx.respond(msg, ephemeral=True)
 
 def setup(bot):
