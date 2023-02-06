@@ -10,7 +10,7 @@ from discord.ext import commands
 # More general algorithm to look for member
 # Return: Member
 # Raises: MemberNotFound
-async def lookup_member(ctx, target: str):
+async def lookup_member(ctx, target: str) -> discord.Member:
     # Check if user asking about themselves
     if (target.lower() == "me"):
         return ctx.author
@@ -61,7 +61,7 @@ async def lookup_member(ctx, target: str):
 # More general algorithm to look for role
 # Return: Role
 # Raises: RoleNotFound
-async def lookup_role(ctx, target: str):
+async def lookup_role(ctx, target: str) -> discord.Role:
     found = False
     # 1. Try the converter
     converter = commands.RoleConverter()
@@ -87,7 +87,7 @@ async def lookup_role(ctx, target: str):
 # Textchannel converter
 # Return: TextChannel
 # Raises: ChannelNotFound
-async def lookup_textchannel(ctx, target: str):
+async def lookup_textchannel(ctx, target: str) -> discord.TextChannel:
     # 1. Try the converter
     converter = commands.TextChannelConverter()
     textchannel = await converter.convert(ctx, target)
@@ -96,7 +96,7 @@ async def lookup_textchannel(ctx, target: str):
 # Textchannel converter
 # Return: Thread
 # Raises: ThreadNotFound
-async def lookup_thread(ctx, target: str):
+async def lookup_thread(ctx, target: str) -> discord.Thread:
     # 1. Try the converter
     converter = commands.ThreadConverter()
     thread = await converter.convert(ctx, target)

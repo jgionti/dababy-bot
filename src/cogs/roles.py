@@ -167,19 +167,28 @@ class Roles(commands.Cog):
 
     # Gives user the Brazil role for some time (in seconds)
     @commands.slash_command(guild_ids = GUILD_IDS)
-    @commands.has_role("Admin")
-    async def brazil(self, ctx,
-        member: discord.Option(str, "Server member to send to Brazil", autocomplete = autocomplete.get_members),
-        time: discord.Option(float, "How long to keep the member in Brazil (in seconds)", required = False, default = 60),
-        reason: discord.Option(str, "Reason for sending member to Brazil", required = False, default = "")
+    @commands.has_any_role("Admin", "DaBaby")
+    async def brazil(self, ctx: discord.ApplicationContext,
+        member: discord.Option(str, "Server member to send to Brazil.", autocomplete = autocomplete.get_members),
+        time: discord.Option(float, "How long to keep the member in Brazil (in seconds).", required = False, default = 60),
+        reason: discord.Option(str, "Reason for sending member to Brazil. Use \"stop\" to remove from Brazil.", required = False, default = "")
     ):
         """Send a server member to Brazil for some time."""
-        # Find member and check if they're already in Brazil
+        # Find member
         member = await converterplus.lookup_member(ctx, member)
         brazil_role = await converterplus.lookup_role(ctx, "Brazil")
+
+        # Remove from Brazil if already in there
+        if reason.lower() == "stop":
+            await ctx.respond(f"Releasing {member.display_name} from Brazil (if they're in it 😅).", ephemeral = True)
+            await self.remove_brazil(ctx, member)
+            return
+
+        # Check if in Brazil
         if brazil_role in member.roles:
             if member.id in self.brazil_times:
-                msg = member.display_name + " has " + timer.get_time_until(self.brazil_times[member.id]) + " left in Brazil."
+                msg = member.display_name + " has " + timer.get_time_until(self.brazil_times[member.id]) + " left in Brazil."\
+                    + f" Have an admin use this command with \"stop\" as the reason."
                 await ctx.respond(msg)
             else:
                 msg = member.display_name + " is in Brazil but shouldn't be! I'll just..."
