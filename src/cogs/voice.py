@@ -54,7 +54,7 @@ class Voice(commands.Cog):
 
     # Send who just joined or left the vc
     @commands.slash_command(guild_ids = GUILD_IDS)
-    async def vclog(self, ctx):
+    async def vclog(self, ctx: discord.ApplicationContext):
         """Find out who recently joined or left the voice channel."""
         if len(self.vc_log) == 0:
             await ctx.respond("Nobody's done anything recently, bozo! 🤡", ephemeral=True)
@@ -63,7 +63,8 @@ class Voice(commands.Cog):
         msg = "Here's the scoop:"
         for data in self.vc_log:
             timestr = timer.get_timestr(int(time.time() - data["time"]))
-            msg += f"\n{data['member']} {data['action']} {data['channel']} {timestr} ago ({data['time'].strftime('%H:%M:%S')})."
+            timestamp = time.strftime('%m/%d/%Y, %H:%M:%S', time.localtime(data["time"]))
+            msg += f"\n{data['member']} {data['action']} {data['channel']} {timestr} ago ({timestamp})."
         await ctx.respond(msg, ephemeral=True)
 
 def setup(bot):
