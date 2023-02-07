@@ -67,6 +67,7 @@ class EventManager(commands.Cog):
             for e in self.events:
                 if e.is_active:
                     await e.end(ctx, [])
+                    e.save()
             await ctx.respond("✅ Stopped all events!")
             return
 
