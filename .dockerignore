@@ -1,0 +1,11 @@
+# flyctl launch added from .gitignore
+# Ignore all cache files to save space
+**\**\__pycache__
+**\.vscode
+.env
+**\heroku
+
+# flyctl launch added from .pytest_cache\.gitignore
+# Created by pytest automatically.
+.pytest_cache\**\*
+fly.toml

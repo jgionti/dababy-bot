@@ -1,0 +1,9 @@
+# fly.toml app configuration file generated for dababy on 2023-10-12T22:22:33-04:00
+#
+# See https://fly.io/docs/reference/configuration/ for information about how to use this file.
+#
+
+app = "dababy"
+primary_region = "mia"
+
+[build]
