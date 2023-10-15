@@ -5,6 +5,7 @@ from src import converterplus
 
 INTERVAL = 30.0
 
+
 class MaxIsOnlineEvent(Event):
     """Event class for the Max is Online event.
 
@@ -12,8 +13,10 @@ class MaxIsOnlineEvent(Event):
     corresponding to his latest status into the #max thread.
 
     args:
-        [0] - interval between status posts
+        [0] - specific channel to do event in
+        [1] - interval between status posts
     """
+
     def __init__(self, bot):
         super().__init__(bot, aliases=["maxisonline"])
         self.interval = INTERVAL
@@ -38,8 +41,24 @@ class MaxIsOnlineEvent(Event):
         await self.max_thread.send(self.gif_str)
 
     async def start(self, ctx, args):
-        # Create new max thread in #general if it doesn't already exist
-        channel: discord.TextChannel = await converterplus.lookup_textchannel(ctx, "general")
+        # Create new max thread in whichever channel is specified in the second arg if it doesn't already exist
+        self.interval = INTERVAL
+        channel_name = "general"
+
+        if (len(args) == 1):
+            # CASE 1: 1 argument, interval only
+            try:
+                self.interval = float(args[0])
+            # CASE 2: 1 argument, channel name only
+            except ValueError as ve:
+                channel_name = args[0]
+
+        # CASE 3: 2 arguments, channel name and interval, in that order
+        if len(args) == 2:
+            channel_name = args[0]
+            self.interval = float(args[1])
+
+        channel: discord.TextChannel = await converterplus.lookup_textchannel(ctx, channel_name)
         guild: discord.Guild = self.bot.get_guild(730196305124655176)
         # Look for discord-plays thread in open threads
         for thr in guild.threads:
@@ -62,10 +81,6 @@ class MaxIsOnlineEvent(Event):
         if self.max_member.status == None:
             self.max_member.status = self.max_member.desktop_status
         # Start event and post current status
-        if len(args) > 0:
-            self.interval = float(args[0])
-        else:
-            self.interval = INTERVAL
         self.post.change_interval(minutes=self.interval)
         self.post.start()
         # Send starting reaction
@@ -88,7 +103,7 @@ class MaxIsOnlineEvent(Event):
     def get_dict(self):
         parent = super().get_dict()
         parent.update({
-            "interval" : self.interval
+            "interval": self.interval
         })
         return parent
 
@@ -97,8 +112,8 @@ class MaxIsOnlineEvent(Event):
             # Get Max's info only
             if before.id == self.max_member.id:
                 if before.guild.id == 730196305124655176:
-                    if (before.status != discord.Status.online and after.status == discord.Status.online)\
-                            or (before.status != discord.Status.offline and after.status == discord.Status.offline)\
-                            or (before.status != discord.Status.idle and after.status == discord.Status.idle)\
+                    if (before.status != discord.Status.online and after.status == discord.Status.online) \
+                            or (before.status != discord.Status.offline and after.status == discord.Status.offline) \
+                            or (before.status != discord.Status.idle and after.status == discord.Status.idle) \
                             or (before.status != discord.Status.dnd and after.status == discord.Status.dnd):
                         self.post.restart()
