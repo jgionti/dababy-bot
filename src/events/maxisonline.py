@@ -30,14 +30,16 @@ class MaxIsOnlineEvent(Event):
 
     # Update self.gif_str and post status of a member to #max
     async def _post_status(self, member: discord.Member):
-        if member.status == discord.Status.online:
+        if member.is_on_mobile():
+            self.gif_str = "https://tenor.com/view/devil-may-cry-max-mobile-phone-dante-gif-12410814099756203738"
+        elif member.status == discord.Status.online:
             self.gif_str = "https://tenor.com/view/max-online-dmc-devil-may-cry-dante-gif-21772253"
         elif member.status == discord.Status.offline:
             self.gif_str = "https://tenor.com/view/dmc-devil-may-cry-nero-max-max-is-offline-gif-21779492"
         elif member.status == discord.Status.idle:
-            self.gif_str = "https://cdn.discordapp.com/attachments/290272452427251723/912784098014142504/dmc-max-away.gif"
+            self.gif_str = "https://tenor.com/view/devil-may-cry-max-max-is-away-away-vergil-gif-7447214506811831601"
         elif member.status == discord.Status.dnd:
-            self.gif_str = "https://cdn.discordapp.com/attachments/290272452427251723/912784109925982308/dmc-max-dnd.gif"
+            self.gif_str = "https://tenor.com/view/max-do-not-disturb-devil-may-cry-vergil-gif-6822476653861822416"
         await self.max_thread.send(self.gif_str)
 
     async def start(self, ctx, args):
