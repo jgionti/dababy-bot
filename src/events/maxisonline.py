@@ -114,7 +114,7 @@ class MaxIsOnlineEvent(Event):
             # Get Max's info only
             if before.id == self.max_member.id:
                 if before.guild.id == 730196305124655176:
-                    if (before.is_on_mobile() and after.is_on_mobile()) \
+                    if (before.is_on_mobile() != after.is_on_mobile()) \
                             or (before.status != discord.Status.online and after.status == discord.Status.online) \
                             or (before.status != discord.Status.offline and after.status == discord.Status.offline) \
                             or (before.status != discord.Status.idle and after.status == discord.Status.idle) \
