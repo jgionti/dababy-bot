@@ -1,5 +1,11 @@
+import os
+
 GUILD_IDS = [
-    730196305124655176, # Main server
+    # BETA
+    1167228972443123772,
+] if os.environ.get("BETA") is not None else [
+    # PROD
+    730196305124655176,
 ]
 """Guild IDs the bot will allow slash commands for."""
 

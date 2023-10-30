@@ -2,6 +2,7 @@ import discord
 from discord.ext import tasks
 from src.events.event import Event
 from src import converterplus
+from src.constants import GUILD_IDS
 
 INTERVAL = 30.0
 
@@ -61,7 +62,7 @@ class MaxIsOnlineEvent(Event):
             self.interval = float(args[1])
 
         channel: discord.TextChannel = await converterplus.lookup_textchannel(ctx, channel_name)
-        guild: discord.Guild = self.bot.get_guild(730196305124655176)
+        guild: discord.Guild = self.bot.get_guild(GUILD_IDS[0])
         # Look for discord-plays thread in open threads
         for thr in guild.threads:
             if thr.name == "max":
@@ -113,7 +114,7 @@ class MaxIsOnlineEvent(Event):
         if self.is_active:
             # Get Max's info only
             if before.id == self.max_member.id:
-                if before.guild.id == 730196305124655176:
+                if before.guild.id == GUILD_IDS[0]:
                     if (before.is_on_mobile() != after.is_on_mobile()) \
                             or (before.status != discord.Status.online and after.status == discord.Status.online) \
                             or (before.status != discord.Status.offline and after.status == discord.Status.offline) \
