@@ -50,6 +50,11 @@ class EventManager(commands.Cog):
         for e in self.events:
             await e.on_presence_update(before, after)
 
+    @commands.Cog.listener()
+    async def on_voice_state_update(self, member: discord.Member, before: discord.VoiceState, after: discord.VoiceState):
+        for e in self.events:
+            await e.on_voice_state_update(member, before, after)
+
     #######################
     #       COMMANDS      #
     #######################

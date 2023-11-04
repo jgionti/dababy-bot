@@ -69,4 +69,9 @@ class Event:
         """Coroutine to execute with the on_presence_update() event.
         """
         pass
+
+    async def on_voice_state_update(self, member: discord.Member, before: discord.VoiceState, after: discord.VoiceState):
+        """Coroutine to execute with the on_voice_state_update() event.
+        """
+        pass
     

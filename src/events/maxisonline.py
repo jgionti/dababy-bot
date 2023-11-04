@@ -5,7 +5,7 @@ from src import converterplus
 from src.constants import GUILD_IDS
 
 INTERVAL = 30.0
-
+MAX_ID = 143524110813757440
 
 class MaxIsOnlineEvent(Event):
     """Event class for the Max is Online event.
@@ -41,6 +41,13 @@ class MaxIsOnlineEvent(Event):
             self.gif_str = "https://tenor.com/view/devil-may-cry-max-max-is-away-away-vergil-gif-7447214506811831601"
         elif member.status == discord.Status.dnd:
             self.gif_str = "https://tenor.com/view/max-do-not-disturb-devil-may-cry-vergil-gif-6822476653861822416"
+        await self.max_thread.send(self.gif_str)
+
+    async def _post_voice_status(self, voice_state: discord.VoiceState):
+        if voice_state.channel is not None:
+            self.gif_str = "https://tenor.com/view/max-vc-max-is-in-vc-vergil-dmc5-gif-17935853328898257202"
+        elif voice_state.channel is None:
+            self.gif_str = "https://tenor.com/view/max-left-vc-dmc5-devil-may-cry-gif-14315047443570728316"
         await self.max_thread.send(self.gif_str)
 
     async def start(self, ctx, args):
@@ -79,8 +86,7 @@ class MaxIsOnlineEvent(Event):
             self.max_thread = await channel.create_thread(name="max", type=discord.ChannelType.public_thread)
 
         # Create Max member objects
-        max_id = 143524110813757440
-        self.max_member: discord.Member = ctx.guild.get_member(max_id)
+        self.max_member: discord.Member = ctx.guild.get_member(MAX_ID)
         if self.max_member.status == None:
             self.max_member.status = self.max_member.desktop_status
         # Start event and post current status
@@ -121,3 +127,11 @@ class MaxIsOnlineEvent(Event):
                             or (before.status != discord.Status.idle and after.status == discord.Status.idle) \
                             or (before.status != discord.Status.dnd and after.status == discord.Status.dnd):
                         self.post.restart()
+
+    async def on_voice_state_update(self, member: discord.Member, before: discord.VoiceState, after: discord.VoiceState):
+        if self.is_active:
+            if member.id == self.max_member.id:
+                if member.guild.id == GUILD_IDS[0]:
+                    if (before.channel is None and after.channel is not None) \
+                            or (before.channel is not None and after.channel is None):
+                        await self._post_voice_status(after)
