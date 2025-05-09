@@ -21,7 +21,14 @@ class Watch2Gether(commands.Cog):
             "The room code is:",
             "You're not watching Yu-Gi-Oh videos, are you?",
             "Do not invite Max:",
-            "One room code coming up:"
+            "One room code coming up:",
+            "I have other commands you know:",
+            "Literally watching 2gether right now:",
+            "I miss my wife, Tails:",
+            "Did you know? W2G rooms last 24 hours:",
+            "Are you sure?",
+            "What is my purpose?",
+            "Try to keep it PG-13:",
         ]
 
     @commands.slash_command(guild_ids = GUILD_IDS)
