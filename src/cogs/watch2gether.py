@@ -20,7 +20,7 @@ class Watch2Gether(commands.Cog):
             "The room code? You got it:",
             "The room code is:",
             "You're not watching Yu-Gi-Oh videos, are you?",
-            "Do not invite Max:",
+            "Make sure you invite Max:",
             "One room code coming up:",
             "I have other commands you know:",
             "Literally watching 2gether right now:",
