@@ -28,16 +28,5 @@ async def on_application_command_error(interaction: discord.Interaction, error: 
         await interaction.response.send_message(f"Uh oh! Error!\n```fix\n{error_smol}```")
     raise error
 
-# TODO: This doesn't work
-@bot.event
-async def interaction_check(interaction: discord.Interaction) -> bool:
-    if (interaction.channel.name == "dababy" or
-            interaction.data["name"] in GLOBAL_COMMANDS):
-        return True
-    else:
-        chn = await commands.TextChannelConverter().convert(interaction.context, "dababy")
-        await interaction.response.send_message(f"❌ Use commands in {chn.mention}!", ephemeral=True)
-        return False
-
 # Start the bot
 bot.run(bot.token)

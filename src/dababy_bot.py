@@ -1,9 +1,12 @@
 import os
 from os.path import isfile, join
+from typing import List
 
 import discord
 from discord.ext import commands
 
+from src import converterplus
+from src.constants import GLOBAL_COMMANDS
 from src.database import Database
 
 class DaBabyBot(commands.Bot):
@@ -15,10 +18,10 @@ class DaBabyBot(commands.Bot):
         self.token = os.environ.get("BOT_TOKEN")
 
         # Other global variables
-        self.phrases = []
-        """List[str] - /dababy phrases"""
-        self.pogs = {}
-        """Dict{int:bool} - Map of id:pogs for /pog"""
+        self.phrases: List[str] = []
+        """/dababy phrases"""
+        self.pogs: dict[int, bool] = {}
+        """Map of id:pogs for /pog"""
         self.db = Database()
         """Bot database for maintaining persistent data"""
 
@@ -30,3 +33,14 @@ class DaBabyBot(commands.Bot):
                 extensions.append("src.cogs." + file.removesuffix(".py"))
         for ext in extensions:
             await self.load_extension(ext)
+
+        self.tree.interaction_check = self.interaction_check
+
+    async def interaction_check(self, interaction: discord.Interaction) -> bool:
+        if (interaction.channel.name == "dababy" 
+                or interaction.data["name"] in GLOBAL_COMMANDS):
+            return True
+        else:
+            chn = await converterplus.lookup_textchannel(interaction, "dababy")
+            await interaction.response.send_message(f"❌ Use commands in {chn.mention}!", ephemeral=True)
+            return False
