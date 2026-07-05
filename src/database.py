@@ -1,4 +1,5 @@
 import os
+from typing import Any, List
 
 import pymongo
 
@@ -91,4 +92,8 @@ class Database:
         else:
             self.update_field(collection, id, field, val + add)
 
-    # For future: can add write_many and read_many should the need arise
+    def read_many(self, collection: str, query = {}) -> List[dict]:
+        col = self.db[collection]
+        return col.find().limit(100).to_list()
+
+    # For future: can add write_many should the need arise

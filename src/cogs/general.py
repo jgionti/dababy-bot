@@ -7,6 +7,7 @@ from discord import app_commands
 from discord.ext import commands
 from src import autocomplete, converterplus, chance
 from src.constants import GUILD_IDS
+from src.dababy_bot import DaBabyBot
 
 #####################
 #      general      #
@@ -16,7 +17,7 @@ from src.constants import GUILD_IDS
 
 class General(commands.Cog):
     def __init__(self, bot: commands.Bot):
-        self.bot = bot
+        self.bot: DaBabyBot = bot
 
     #######################
     #  HELPER FUNCTIONS   #
@@ -178,20 +179,26 @@ class General(commands.Cog):
         member: Optional[str] = "me"
     ):
         """Displays info about a server member. Leave blank or type \"me\" to test yourself."""
-        async with interaction.channel.typing():
-            mem: discord.Member = await converterplus.lookup_member(interaction, member)
-            callback = await interaction.response.send_message("Lemme look! (Fetching messages...)")
-            msg_tuple = await self.get_message_tuple(interaction, mem)
-            msg_density = msg_tuple[0]/msg_tuple[1]
-            role_str = await self.get_role_string(mem)
-            embed = discord.Embed(color = mem.top_role.color, title=(mem.name+"#"+str(mem.discriminator)))
-            embed.set_image(url=mem.display_avatar.with_size(128))
-            embed.add_field(name="Mention", value=mem.mention)
-            embed.add_field(name="Recent Messages", value=(str(msg_tuple[0])))
-            embed.add_field(name="Message Density", value=(str(round(msg_density*100, 2))+"%"))
-            embed.add_field(name="Roles", value=role_str, inline=False)
-            embed.set_footer(text="Recent Messages are counted over the past 30 days.")
-            await callback.resource.edit(content="", embed=embed)
+        mem: discord.Member = await converterplus.lookup_member(interaction, member)
+        members = self.bot.db.read_many("members")
+
+        msg_count = 0
+        total_msg_count = 0
+        for m in members:
+            total_msg_count += m.get("messageCount", 0)
+            if m.get("_id") == str(mem.id):
+                msg_count = m.get("messageCount", 0)
+
+        msg_density = msg_count/total_msg_count
+        role_str = await self.get_role_string(mem)
+        embed = discord.Embed(color=mem.top_role.color, title=mem.name)
+        embed.set_image(url=mem.display_avatar.with_size(128))
+        embed.add_field(name="Mention", value=mem.mention)
+        embed.add_field(name="Total Messages", value=(msg_count))
+        embed.add_field(name="Message Density", value=(str(round(msg_density*100, 2))+"%"))
+        embed.add_field(name="Roles", value=role_str, inline=False)
+        embed.set_footer(text="Total Messages are counted since December 3rd, 2022.")
+        await interaction.response.send_message(content="", embed=embed)
 
     # Rock paper scissors game
     @app_commands.command()
