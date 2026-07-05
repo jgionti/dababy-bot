@@ -1,5 +1,7 @@
 import os
 import random
+from typing import Optional
+from discord import app_commands
 import requests
 import discord
 from discord.ext import commands
@@ -31,9 +33,13 @@ class Watch2Gether(commands.Cog):
             "Try to keep it PG-13:",
         ]
 
-    @commands.slash_command(guild_ids = GUILD_IDS)
-    async def w2g(self, ctx: discord.ApplicationContext,
-        url: discord.Option(str, "(Optional) The URL of a video to preload to the room.", required=False)
+    @app_commands.command()
+    @app_commands.guilds(*GUILD_IDS)
+    @app_commands.describe(
+        url="(Optional) The URL of a video to preload to the room."
+    )
+    async def w2g(self, interaction: discord.Interaction,
+        url: Optional[str]
     ):
         """Generates a Watch2Gether room so you don't have to!"""
         response = requests.post(
@@ -51,7 +57,7 @@ class Watch2Gether(commands.Cog):
         )
         response_json = response.json()
         streamkey: str = response_json['streamkey']
-        await ctx.respond(f"{random.choice(self.quip_list)} https://w2g.tv/rooms/{streamkey}")
+        await interaction.response.send_message(f"{random.choice(self.quip_list)} https://w2g.tv/rooms/{streamkey}")
 
-def setup(bot):
-    bot.add_cog(Watch2Gether(bot))
+async def setup(bot):
+    await bot.add_cog(Watch2Gether(bot))

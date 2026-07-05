@@ -17,12 +17,12 @@ class StolenLetterEvent(Event):
         super().__init__(bot, aliases=["stolenletter"])
         self.stolen_char = 'n'
 
-    async def start(self, ctx, args):
+    async def start(self, interaction, args):
         # Initialize event
         if len(args) > 0:
             stolen_char = args[0]
             if len(stolen_char) != 1:
-                await ctx.respond("\N{CROSS MARK} Only 1 character allowed!", ephemeral = True)
+                await interaction.response.send_message("\N{CROSS MARK} Only 1 character allowed!", ephemeral = True)
                 return
             self.stolen_char = stolen_char.lower()
 
@@ -31,12 +31,12 @@ class StolenLetterEvent(Event):
             "This is actually a quite bad jump from before! **(All messages with the exiled letter will be zapped)**"
         msg = msg.replace(self.stolen_char, '')
         msg = msg.replace(self.stolen_char.upper(), '')
-        await ctx.respond(content=msg, file=discord.File("resources/StolenLetter.PNG"))
-        await super().start(ctx)
+        await interaction.response.send_message(content=msg, file=discord.File("resources/StolenLetter.PNG"))
+        await super().start(interaction)
 
-    async def end(self, ctx, args):
-        await super().end(ctx, args)
-        await ctx.respond("Let's go! The letter \'" + self.stolen_char + "\' has been found again!")
+    async def end(self, interaction, args):
+        await super().end(interaction, args)
+        await interaction.response.send_message("Let's go! The letter \'" + self.stolen_char + "\' has been found again!")
 
     def get_dict(self):
         parent = super().get_dict()

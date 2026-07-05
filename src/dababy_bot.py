@@ -10,6 +10,7 @@ class DaBabyBot(commands.Bot):
     def __init__(self):
         super().__init__("$", intents=discord.Intents.all())
 
+    async def init(self):
         # Load data from .env
         self.token = os.environ.get("BOT_TOKEN")
 
@@ -28,4 +29,4 @@ class DaBabyBot(commands.Bot):
             if isfile(join(dir, file)) and not file.startswith("_"):
                 extensions.append("src.cogs." + file.removesuffix(".py"))
         for ext in extensions:
-            self.load_extension(ext)
+            await self.load_extension(ext)
