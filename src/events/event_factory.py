@@ -1,6 +1,6 @@
 from typing import List
 
-import discord
+from discord.ext import commands
 from src.events.cap import CapEvent
 from src.events.event import Event
 from src.events.maxisonline import MaxIsOnlineEvent
@@ -8,7 +8,7 @@ from src.events.pingchallenge import PingChallengeEvent
 from src.events.stolenletter import StolenLetterEvent
 
 
-def get_events(bot: discord.Bot) -> List[Event]:
+def get_events(bot: commands.Bot) -> List[Event]:
     """Instantiate the list of server events.
 
     Returns a list of objects corresponding to each Event.

@@ -1,36 +1,37 @@
 from typing import List
 
 import discord
+from discord.ext import commands
 
 
 class Event:
     """Base class for server events.
     """
-    def __init__(self, bot, aliases = []):
+    def __init__(self, bot: commands.Bot, aliases = []):
         self.aliases = aliases
         self.is_active = False
-        self.ctx = None
+        self.interaction = None
         self.bot = bot
 
-    async def toggle(self, ctx, args: List[str] = ...):
+    async def toggle(self, interaction: discord.Interaction, args: List[str] = ...):
         """Toggles the event (start if inactive or end if active).
 
         args is an optional list of space-separated strings.
         """
         if not self.is_active:
-            await self.start(ctx, args)
+            await self.start(interaction, args)
         else:
-            await self.end(ctx, args)
+            await self.end(interaction, args)
 
-    async def start(self, ctx, args: List[str] = ...):
+    async def start(self, interaction: discord.Interaction, args: List[str] = ...):
         """Coroutine to start the event.
 
         args is an optional list of space-separated strings.
         """
         self.is_active = True
-        self.ctx = ctx
+        self.interaction = interaction
 
-    async def end(self, ctx, args: List[str] = ...):
+    async def end(self, interaction: discord.Interaction, args: List[str] = ...):
         """Coroutine to end the event.
         """
         self.is_active = False

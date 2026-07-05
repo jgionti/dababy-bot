@@ -1,4 +1,7 @@
+from typing import List, Optional
+
 import discord
+from discord import app_commands
 from discord.ext import commands
 
 from src.constants import GUILD_IDS
@@ -10,10 +13,10 @@ from src.constants import GUILD_IDS
 # No timing or checking is done right now
 
 class Poll(commands.Cog):
-    def __init__(self, bot):
+    def __init__(self, bot: commands.Bot):
         self.bot = bot
 
-    def _create_poll_embed(self, author: discord.Member, q: str, ops, reactions) -> discord.Embed:
+    def _create_poll_embed(self, author: discord.Member, q: str, ops: List[str], reactions: List[str]) -> discord.Embed:
         desc = f"{q}\n\n"
         for i in range(0, len(ops)):
             desc += f"{reactions[i]} {ops[i]}\n"
@@ -22,23 +25,35 @@ class Poll(commands.Cog):
         return embed
 
     # Use reactions to host a poll; currently untimed
-    @commands.slash_command(guild_ids = GUILD_IDS)
-    async def poll( self, ctx,
-        question: discord.Option(str, "Question to ask"),
-        op1 : discord.Option(str, "Option 1", required = False, default = ""),
-        op2 : discord.Option(str, "Option 2", required = False, default = ""),
-        op3 : discord.Option(str, "Option 3", required = False, default = ""),
-        op4 : discord.Option(str, "Option 4", required = False, default = ""),
-        op5 : discord.Option(str, "Option 5", required = False, default = ""),
-        op6 : discord.Option(str, "Option 6", required = False, default = ""),
-        op7 : discord.Option(str, "Option 7", required = False, default = ""),
-        op8 : discord.Option(str, "Option 8", required = False, default = ""),
+    @app_commands.command()
+    @app_commands.guilds(*GUILD_IDS)
+    @app_commands.describe(
+        question="Question to ask",
+        op1="Option 1",
+        op2="Option 2",
+        op3="Option 3",
+        op4="Option 4",
+        op5="Option 5",
+        op6="Option 6",
+        op7="Option 7",
+        op8="Option 8"
+    )
+    async def poll(self, interaction: discord.Interaction,
+        question: str,
+        op1: Optional[str],
+        op2: Optional[str],
+        op3: Optional[str],
+        op4: Optional[str],
+        op5: Optional[str],
+        op6: Optional[str],
+        op7: Optional[str],
+        op8: Optional[str]
     ):
         """Ask the group a question and get feedback. Requires 2+ options."""
         args = [op1, op2, op3, op4, op5, op6, op7, op8]
         ops = []
         for op in args:
-            if (op != ""):
+            if (op is not None):
                 ops.append(op)
 
         reactions = []
@@ -48,15 +63,15 @@ class Poll(commands.Cog):
         elif len(ops) >= 2:
             reactions = ["🇦", "🇧", "🇨", "🇩", "🇪", "🇫", "🇬", "🇭"]
         else:
-            await ctx.respond("👎 Poll must have at least 2 options!", ephemeral=True)
+            await interaction.response.send_message("👎 Poll must have at least 2 options!", ephemeral=True)
             return
 
-        embed = self._create_poll_embed(ctx.author, question, ops, reactions)
-        intr: discord.Interaction = await ctx.respond(embed=embed)
-        msg = await intr.original_message()
+        embed = self._create_poll_embed(interaction.user, question, ops, reactions)
+        callback = await interaction.response.send_message(embed=embed)
+        msg: discord.Message = callback.resource
         for i in range(0, len(ops)):
             await msg.add_reaction(reactions[i])
     
 
-def setup(bot):
-    bot.add_cog(Poll(bot))
+async def setup(bot: commands.Bot):
+    await bot.add_cog(Poll(bot))

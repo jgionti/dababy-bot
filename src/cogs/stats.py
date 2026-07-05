@@ -1,4 +1,3 @@
-import imp
 import discord
 from discord.ext import commands
 
@@ -12,7 +11,7 @@ import src.constants as constants
 # Uses database to store/load
 
 class Stats(commands.Cog):
-    def __init__(self, bot):
+    def __init__(self, bot: commands.Bot):
         self.bot: DaBabyBot = bot
 
     def ensure_member_exists(self, id: str):
@@ -37,5 +36,5 @@ class Stats(commands.Cog):
         id = str(message.author.id)
         self.bot.db.add_to_field("members", id, "messageCount", 1)
 
-def setup(bot):
-    bot.add_cog(Stats(bot))
+async def setup(bot):
+    await bot.add_cog(Stats(bot))

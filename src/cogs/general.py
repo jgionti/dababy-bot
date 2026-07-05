@@ -1,7 +1,9 @@
 import datetime
 import random
+from typing import List, Literal, Optional
 
 import discord
+from discord import app_commands
 from discord.ext import commands
 from src import autocomplete, converterplus, chance
 from src.constants import GUILD_IDS
@@ -13,7 +15,7 @@ from src.constants import GUILD_IDS
 # Interactions mainly through text
 
 class General(commands.Cog):
-    def __init__(self, bot):
+    def __init__(self, bot: commands.Bot):
         self.bot = bot
 
     #######################
@@ -21,8 +23,7 @@ class General(commands.Cog):
     #######################
 
     # Get the bot phrases using phrases.txt
-    # Return: List[str]
-    async def init_phrases(self):
+    async def init_phrases(self) -> List[str]:
         print("Initializaing phrases...")
         phrases_list = []
         file = open("resources/phrases.txt", "r", encoding="utf-8")
@@ -32,25 +33,24 @@ class General(commands.Cog):
         return phrases_list
 
     # Get every message from up to 30 days ago
-    # Return: List[Message]
-    async def get_message_cache(self, ctx, days: int=30):
-        async with ctx.channel.typing():
+    async def get_message_cache(self, interaction: discord.Interaction, days: int=30) -> List[discord.Message]:
+        async with interaction.channel.typing():
             message_cache = []
-            for channel in ctx.guild.text_channels:
-                perm = channel.permissions_for(ctx.me)
+            for channel in interaction.guild.text_channels:
+                perm = channel.permissions_for(interaction.guild.me)
                 if perm.read_message_history == True and perm.read_messages == True:
                     after = datetime.datetime.today() - datetime.timedelta(days=days)
-                    history = await channel.history(after=after).flatten()
+                    history = [message async for message in channel.history(after=after)]
                     for message in history:
                         message_cache.append(message)
         return message_cache
 
     # Get the number of messages a member recently sent across all visible channels
-    # Return: (int, int) in the form (count, total)
-    async def get_message_tuple(self, ctx, member: discord.Member):
+    # Return: (count, total)
+    async def get_message_tuple(self, interaction: discord.Interaction, member: discord.Member) -> tuple[int, int]:
         count = 0
         total = 0
-        message_cache = await self.get_message_cache(ctx)
+        message_cache = await self.get_message_cache(interaction)
         for message in message_cache:
             total += 1
             if message.author == member:
@@ -58,10 +58,9 @@ class General(commands.Cog):
         return (count, total)
         
     # Get the list of online members for the guild to which the context belongs
-    # Return: List[Member]
-    async def get_online_members(self, ctx):
+    async def get_online_members(self, interaction: discord.Interaction) -> List[discord.Member]:
         online_members = []
-        for mem in ctx.guild.members:
+        for mem in interaction.guild.members:
             if mem.status != discord.Status.offline:
                 online_members.append(mem)
         return online_members
@@ -96,35 +95,41 @@ class General(commands.Cog):
     #######################
 
     # Basic command, useful for testing connection
-    @commands.slash_command(guild_ids = GUILD_IDS)
-    async def ping(self, ctx):
+    @app_commands.command()
+    @app_commands.guilds(*GUILD_IDS)
+    async def ping(self, interaction: discord.Interaction):
         """Displays the bot's latency."""
-        await ctx.respond("Pong! Latency is " + str(int(self.bot.latency*1000)) + " ms.")
+        await interaction.response.send_message("Pong! Latency is " + str(int(self.bot.latency*1000)) + " ms.")
     
     # Sends a random dababy line
-    @commands.slash_command(guild_ids = GUILD_IDS)
-    async def dababy(self, ctx,
-        message: discord.Option(str, "What you want to say to DaBaby", required = False)
+    @app_commands.command()
+    @app_commands.guilds(*GUILD_IDS)
+    @app_commands.describe(
+        message="What you want to say to DaBaby"
+    )
+    async def dababy(self, interaction: discord.Interaction,
+        message: Optional[str]
     ):
         """Sends a random DaBaby phrase."""
         msg = ""
-        interact = None
+        callback = None
         if message:
-            msg += "`"+ctx.author.display_name + " said:` " + message + "\n\n"
+            msg += f"`{interaction.user.display_name} said:` {message}\n\n"
         if not self.bot.phrases:
-            interact = await ctx.respond("Loading...")
+            callback = await interaction.response.send_message("Loading...")
             self.bot.phrases = await self.init_phrases()
         msg += random.choice(self.bot.phrases)
-        if interact is not None:
-            await interact.edit_original_message(content=msg)
-        else: await ctx.respond(msg)
+        if callback is not None:
+            await callback.resource.edit(content=msg)
+        else: await interaction.response.send_message(msg)
 
     # States that a random online member is suspicious, slightly weighted toward Dante
-    @commands.slash_command(guild_ids = GUILD_IDS)
-    async def sus(self, ctx):
+    @app_commands.command()
+    @app_commands.guilds(*GUILD_IDS)
+    async def sus(self, interaction: discord.Interaction):
         """States that a random server member is suspicious."""
-        members = await self.get_online_members(ctx)
-        dante = ctx.guild.get_member(203300119557308417)
+        members = await self.get_online_members(interaction)
+        dante = interaction.guild.get_member(203300119557308417)
         if dante in members:
             members.append(dante)
             members.append(dante)
@@ -143,30 +148,40 @@ class General(commands.Cog):
             # Normal sus
             msg = "Ayo! **" + name + "** is sus!"
             fil = discord.File("resources/JermaSus.jpg")
-        await ctx.respond(content=msg, file=fil)
+        await interaction.response.send_message(content=msg, file=fil)
 
     # States whether a given member is poggers
-    @commands.slash_command(guild_ids = GUILD_IDS)
-    async def pog(self, ctx, 
-        member: discord.Option(str, "Server member to be judged by DaBaby", required = False, default = "me", autocomplete = autocomplete.get_members)
+    @app_commands.command()
+    @app_commands.guilds(*GUILD_IDS)
+    @app_commands.describe(
+        member="Server member to be judged by DaBaby"
+    )
+    @app_commands.autocomplete(member=autocomplete.get_members)
+    async def pog(self, interaction: discord.Interaction,
+        member: Optional[str] = "me"
     ):
         """States whether a server member is poggers. Leave blank or type \"me\" to test yourself."""
-        mem = await converterplus.lookup_member(ctx, member)
+        mem = await converterplus.lookup_member(interaction, member)
         is_pog = await self.get_pog(mem)
         if is_pog:
-            await ctx.respond(mem.display_name + " is **pog!** Let's go!!!")
-        else: await ctx.respond(mem.display_name + " is **not pog!** That's disgusting!!!")
+            await interaction.response.send_message(mem.display_name + " is **pog!** This is good news!!!")
+        else: await interaction.response.send_message(mem.display_name + " is **not pog!** That's disgusting!!!")
 
     # Displays info about a particular member
-    @commands.slash_command(guild_ids = GUILD_IDS)
-    async def info(self, ctx, 
-        member: discord.Option(str, "Server member to get info about", required = False, default = "me", autocomplete = autocomplete.get_members)
+    @app_commands.command()
+    @app_commands.guilds(*GUILD_IDS)
+    @app_commands.describe(
+        member="Server member to get info about"
+    )
+    @app_commands.autocomplete(member=autocomplete.get_members)
+    async def info(self, interaction: discord.Interaction, 
+        member: Optional[str] = "me"
     ):
         """Displays info about a server member. Leave blank or type \"me\" to test yourself."""
-        async with ctx.channel.typing():
-            mem = await converterplus.lookup_member(ctx, member)
-            interact = await ctx.respond("Lemme look! (Fetching messages...)")
-            msg_tuple = await self.get_message_tuple(ctx, mem)
+        async with interaction.channel.typing():
+            mem: discord.Member = await converterplus.lookup_member(interaction, member)
+            callback = await interaction.response.send_message("Lemme look! (Fetching messages...)")
+            msg_tuple = await self.get_message_tuple(interaction, mem)
             msg_density = msg_tuple[0]/msg_tuple[1]
             role_str = await self.get_role_string(mem)
             embed = discord.Embed(color = mem.top_role.color, title=(mem.name+"#"+str(mem.discriminator)))
@@ -176,12 +191,13 @@ class General(commands.Cog):
             embed.add_field(name="Message Density", value=(str(round(msg_density*100, 2))+"%"))
             embed.add_field(name="Roles", value=role_str, inline=False)
             embed.set_footer(text="Recent Messages are counted over the past 30 days.")
-            await interact.edit_original_message(content="", embed=embed)
+            await callback.resource.edit(content="", embed=embed)
 
     # Rock paper scissors game
-    @commands.slash_command(guild_ids = GUILD_IDS)
-    async def rps(self, ctx,
-        choice: discord.Option(str, "", autocomplete=discord.utils.basic_autocomplete(["rock", "paper", "scissors"]))
+    @app_commands.command()
+    @app_commands.guilds(*GUILD_IDS)
+    async def rps(self, interaction: discord.Interaction,
+        choice: Literal["rock", "paper", "scissors"]
     ):
         """Play rock paper scissors with DaBaby!"""
         color = discord.Color.light_gray()
@@ -223,10 +239,10 @@ class General(commands.Cog):
             color = discord.Color.red()
         else:
             string += "**" + int_to_rps[p_int] + "** beats **" + int_to_rps[my_int]+ "**!\n"\
-                + ctx.author.display_name + " wins!"
+                + interaction.user.display_name + " wins!"
             color = discord.Color.green()
 
-        await ctx.respond(embed=discord.Embed(description=string, color=color))
+        await interaction.response.send_message(embed=discord.Embed(description=string, color=color))
 
-def setup(bot):
-    bot.add_cog(General(bot))
+async def setup(bot: commands.Bot):
+    await bot.add_cog(General(bot))

@@ -9,16 +9,16 @@ class CapEvent(Event):
         super().__init__(bot, aliases=["cap"])
         self.bias = []
 
-    async def start(self, ctx, args):
-        await ctx.respond('🧢')
-        brank = converterplus.lookup_member(ctx, "290153703808434176")
-        max = converterplus.lookup_member(ctx, "143524110813757440")
+    async def start(self, interaction, args):
+        await interaction.response.send_message('🧢')
+        brank = converterplus.lookup_member(interaction, "290153703808434176")
+        max = converterplus.lookup_member(interaction, "143524110813757440")
         self.bias = [brank, max]
-        await super().start(ctx)
+        await super().start(interaction)
 
-    async def end(self, ctx, args):
-        await super().end(ctx)
-        await ctx.respond("🚫🧢")
+    async def end(self, interaction, args):
+        await super().end(interaction)
+        await interaction.response.send_message("🚫🧢")
 
     async def on_message(self, message: discord.Message):
         if self.is_active:

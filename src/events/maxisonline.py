@@ -50,7 +50,7 @@ class MaxIsOnlineEvent(Event):
             self.gif_str = "https://tenor.com/view/max-left-vc-dmc5-devil-may-cry-gif-14315047443570728316"
         await self.max_thread.send(self.gif_str)
 
-    async def start(self, ctx, args):
+    async def start(self, interaction, args):
         # Create new max thread in whichever channel is specified in the second arg if it doesn't already exist
         self.interval = INTERVAL
         channel_name = "general"
@@ -68,7 +68,7 @@ class MaxIsOnlineEvent(Event):
             channel_name = args[0]
             self.interval = float(args[1])
 
-        channel: discord.TextChannel = await converterplus.lookup_textchannel(ctx, channel_name)
+        channel: discord.TextChannel = await converterplus.lookup_textchannel(interaction, channel_name)
         guild: discord.Guild = self.bot.get_guild(GUILD_IDS[0])
         # Look for discord-plays thread in open threads
         for thr in guild.threads:
@@ -86,24 +86,24 @@ class MaxIsOnlineEvent(Event):
             self.max_thread = await channel.create_thread(name="max", type=discord.ChannelType.public_thread)
 
         # Create Max member objects
-        self.max_member: discord.Member = ctx.guild.get_member(MAX_ID)
+        self.max_member: discord.Member = interaction.guild.get_member(MAX_ID)
         if self.max_member.status == None:
             self.max_member.status = self.max_member.desktop_status
         # Start event and post current status
         self.post.change_interval(minutes=self.interval)
         self.post.start()
         # Send starting reaction
-        await ctx.respond(f"👀 {self.max_thread.mention}")
+        await interaction.response.send_message(f"👀 {self.max_thread.mention}")
 
-        await super().start(ctx)
+        await super().start(interaction)
 
-    async def end(self, ctx, args):
+    async def end(self, interaction, args):
         self.post.cancel()
         await self.max_thread.archive()
         self.max_thread = None
         self.max_member = None
-        await ctx.respond("\N{SEE-NO-EVIL MONKEY}")
-        await super().end(ctx)
+        await interaction.response.send_message("\N{SEE-NO-EVIL MONKEY}")
+        await super().end(interaction)
 
     def load(self):
         # Do nothing in this Event subclass; loading tasks not implemented
