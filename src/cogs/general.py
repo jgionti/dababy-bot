@@ -197,7 +197,7 @@ class General(commands.Cog):
         embed.add_field(name="Total Messages", value=(msg_count))
         embed.add_field(name="Message Density", value=(str(round(msg_density*100, 2))+"%"))
         embed.add_field(name="Roles", value=role_str, inline=False)
-        embed.set_footer(text="Total Messages are counted since December 3rd, 2022.")
+        embed.set_footer(text=f"Total Messages are counted since December 3rd, 2022. Serverwide count: {total_msg_count}")
         await interaction.response.send_message(content="", embed=embed)
 
     # Rock paper scissors game
