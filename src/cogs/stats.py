@@ -40,6 +40,25 @@ class Stats(commands.Cog):
         id = str(message.author.id)
         self.bot.db.add_to_field(Database.COLLECTION_MEMBERS, id, "messageCount", 1)
 
+    # TODO:
+    # on_reaction_add
+    # on_voice_state_update
+
+    # Convert the List[Role] of a member to a formatted string
+    # Return: str
+    async def get_role_string(self, member: discord.Member):
+        role_str = ""
+        count = 0
+        role_list = member.roles
+        role_list.reverse()
+        role_list.pop()
+        for role in role_list:
+            role_str += role.mention + " "
+            count += 1
+            if count % 4 == 0:
+                role_str += "\n"
+        return role_str
+
     @app_commands.command()
     @app_commands.guilds(*GUILD_IDS)
     @app_commands.describe(

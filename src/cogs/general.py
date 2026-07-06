@@ -51,21 +51,6 @@ class General(commands.Cog):
             d[member.id] = not d[member.id]
         return d[member.id]
 
-    # Convert the List[Role] of a member to a formatted string
-    # Return: str
-    async def get_role_string(self, member: discord.Member):
-        role_str = ""
-        count = 0
-        role_list = member.roles
-        role_list.reverse()
-        role_list.pop()
-        for role in role_list:
-            role_str += role.mention + " "
-            count += 1
-            if count % 4 == 0:
-                role_str += "\n"
-        return role_str
-
     #######################
     #       COMMANDS      #
     #######################
