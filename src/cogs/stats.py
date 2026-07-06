@@ -6,6 +6,7 @@ from typing import Optional
 from src import autocomplete, converterplus
 from src.constants import GUILD_IDS
 from src.dababy_bot import DaBabyBot
+from src.database import Database
 
 #####################
 #       stats       #
@@ -18,8 +19,8 @@ class Stats(commands.Cog):
         self.bot: DaBabyBot = bot
 
     def ensure_member_exists(self, id: str):
-        if self.bot.db.read("members", id) is None:
-            self.bot.db.write("members", id, {})
+        if self.bot.db.read(Database.COLLECTION_MEMBERS, id) is None:
+            self.bot.db.write(Database.COLLECTION_MEMBERS, id, {})
 
     @commands.Cog.listener()
     async def on_ready(self):
@@ -37,7 +38,7 @@ class Stats(commands.Cog):
     @commands.Cog.listener()
     async def on_message(self, message: discord.Message):
         id = str(message.author.id)
-        self.bot.db.add_to_field("members", id, "messageCount", 1)
+        self.bot.db.add_to_field(Database.COLLECTION_MEMBERS, id, "messageCount", 1)
 
     @app_commands.command()
     @app_commands.guilds(*GUILD_IDS)
@@ -50,7 +51,7 @@ class Stats(commands.Cog):
     ):
         """Displays info about a server member. Leave blank or type \"me\" to test yourself."""
         mem: discord.Member = await converterplus.lookup_member(interaction, member)
-        members = self.bot.db.read_many("members")
+        members = self.bot.db.read_many(Database.COLLECTION_MEMBERS)
 
         msg_count = 0
         total_msg_count = 0

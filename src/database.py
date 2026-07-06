@@ -12,6 +12,10 @@ class Database:
 
     Each document has a _id used to identify itself.
     """
+
+    COLLECTION_MEMBERS="members"
+    COLLECTION_EVENTS="events"
+
     def __init__(self):
         """Instantiates a Database class and creates a connection to
         the main database.

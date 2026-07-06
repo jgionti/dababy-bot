@@ -3,6 +3,8 @@ from typing import List
 import discord
 from discord.ext import commands
 
+from src.database import Database
+
 
 class Event:
     """Base class for server events.
@@ -40,12 +42,12 @@ class Event:
         """Write class contents to the database.
         """
         data = self.get_dict()
-        self.bot.db.write("events", self.aliases[0], data)
+        self.bot.db.write(Database.COLLECTION_EVENTS, self.aliases[0], data)
 
     def load(self):
         """Read class contents from the database.
         """
-        data = self.bot.db.read("events", self.aliases[0])
+        data = self.bot.db.read(Database.COLLECTION_EVENTS, self.aliases[0])
         # If document found, set all attributes to its values
         if data:
             for k, v in data.items():
