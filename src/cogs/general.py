@@ -32,31 +32,6 @@ class General(commands.Cog):
             phrases_list.append(line.rstrip())
         print("Done!")
         return phrases_list
-
-    # Get every message from up to 30 days ago
-    async def get_message_cache(self, interaction: discord.Interaction, days: int=30) -> List[discord.Message]:
-        async with interaction.channel.typing():
-            message_cache = []
-            for channel in interaction.guild.text_channels:
-                perm = channel.permissions_for(interaction.guild.me)
-                if perm.read_message_history == True and perm.read_messages == True:
-                    after = datetime.datetime.today() - datetime.timedelta(days=days)
-                    history = [message async for message in channel.history(after=after)]
-                    for message in history:
-                        message_cache.append(message)
-        return message_cache
-
-    # Get the number of messages a member recently sent across all visible channels
-    # Return: (count, total)
-    async def get_message_tuple(self, interaction: discord.Interaction, member: discord.Member) -> tuple[int, int]:
-        count = 0
-        total = 0
-        message_cache = await self.get_message_cache(interaction)
-        for message in message_cache:
-            total += 1
-            if message.author == member:
-                count += 1
-        return (count, total)
         
     # Get the list of online members for the guild to which the context belongs
     async def get_online_members(self, interaction: discord.Interaction) -> List[discord.Member]:
@@ -167,38 +142,6 @@ class General(commands.Cog):
         if is_pog:
             await interaction.response.send_message(mem.display_name + " is **pog!** This is good news!!!")
         else: await interaction.response.send_message(mem.display_name + " is **not pog!** That's disgusting!!!")
-
-    # Displays info about a particular member
-    @app_commands.command()
-    @app_commands.guilds(*GUILD_IDS)
-    @app_commands.describe(
-        member="Server member to get info about"
-    )
-    @app_commands.autocomplete(member=autocomplete.get_members)
-    async def info(self, interaction: discord.Interaction, 
-        member: Optional[str] = "me"
-    ):
-        """Displays info about a server member. Leave blank or type \"me\" to test yourself."""
-        mem: discord.Member = await converterplus.lookup_member(interaction, member)
-        members = self.bot.db.read_many("members")
-
-        msg_count = 0
-        total_msg_count = 0
-        for m in members:
-            total_msg_count += m.get("messageCount", 0)
-            if m.get("_id") == str(mem.id):
-                msg_count = m.get("messageCount", 0)
-
-        msg_density = msg_count/total_msg_count
-        role_str = await self.get_role_string(mem)
-        embed = discord.Embed(color=mem.top_role.color, title=mem.name)
-        embed.set_image(url=mem.display_avatar.with_size(128))
-        embed.add_field(name="Mention", value=mem.mention)
-        embed.add_field(name="Total Messages", value=(msg_count))
-        embed.add_field(name="Message Density", value=(str(round(msg_density*100, 2))+"%"))
-        embed.add_field(name="Roles", value=role_str, inline=False)
-        embed.set_footer(text=f"Total Messages are counted since December 3rd, 2022. Serverwide count: {total_msg_count}")
-        await interaction.response.send_message(content="", embed=embed)
 
     # Rock paper scissors game
     @app_commands.command()
