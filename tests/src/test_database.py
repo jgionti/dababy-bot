@@ -1,121 +1,265 @@
+import uuid
+
 import pytest
+
 from src.database import Database
 
 TEST_COLLECTION = "TEST_COLLECTION"
-ID = "_id"
-TEST_ID = "TEST"
-TEST_FIELD = "test"
-TEST_FIELD_VAL = "data"
-TEST_FIELD_VAL2 = "not data"
-TEST_DATA = {TEST_FIELD : TEST_FIELD_VAL}
 
-database = Database()
+
+@pytest.fixture(scope="session")
+def database():
+    """Create a Database instance and clean up when the test session ends."""
+    db = Database()
+
+    yield db
+
+    db.db.drop_collection(TEST_COLLECTION)
+
+
+@pytest.fixture(autouse=True)
+def clean_collection(database):
+    """Ensure each test starts with an empty collection."""
+    database.db.drop_collection(TEST_COLLECTION)
+    yield
+    database.db.drop_collection(TEST_COLLECTION)
+
+
+@pytest.fixture
+def doc_id():
+    """Generate a unique document ID for each test."""
+    return str(uuid.uuid4())
+
+
+@pytest.fixture
+def sample_document(database, doc_id):
+    """Insert a sample document for tests that require one."""
+    database.write(
+        TEST_COLLECTION,
+        doc_id,
+        {
+            "name": "Alice",
+            "score": 10,
+        },
+    )
+
+    return doc_id
+
 
 class TestDatabase:
-    """Integration tests for Database class. Must execute all tests in order.
-
-    If tests are executed out of order, unexpected behavior might occur.
-    """
-
-    @pytest.fixture(scope="session", autouse=True)
-    def create_collection(self):
-        """Helper: Create the test collection. Dropped when done."""
-        if database.db.get_collection(TEST_COLLECTION) is None:
-            database.db.create_collection(TEST_COLLECTION)
-        yield
-        database.db.drop_collection(TEST_COLLECTION)
-
-    def check_data(self, data, id, field_val):
-        assert data is not None
-        assert data[ID] == id
-        assert data[TEST_FIELD] == field_val
-
-    def test_init(self):
+    def test_init(self, database):
         assert database is not None
         assert database.db is not None
 
-    def test_write_read_new(self):
-        """Write then read when document does not exist."""
-        database.write(TEST_COLLECTION, TEST_ID, TEST_DATA)
-        data = database.read(TEST_COLLECTION, TEST_ID)
-        self.check_data(data, TEST_ID, TEST_FIELD_VAL)
+    def test_write_new_document(self, database, doc_id):
+        database.write(
+            TEST_COLLECTION,
+            doc_id,
+            {
+                "name": "Bob",
+                "score": 5,
+            },
+        )
 
-    def test_write_read_exists(self):
-        """Write then read when document already exists."""
-        new_data = TEST_DATA
-        new_data[TEST_FIELD] = TEST_FIELD_VAL2
-        database.write(TEST_COLLECTION, TEST_ID, new_data)
-        data = database.read(TEST_COLLECTION, TEST_ID)
-        self.check_data(data, TEST_ID, TEST_FIELD_VAL2)
+        doc = database.read(TEST_COLLECTION, doc_id)
 
-    def test_read_field_exists(self):
-        """Tries to read an existing field from a document."""
-        value = database.read_field(TEST_COLLECTION, TEST_ID, TEST_FIELD)
-        assert value is not None
-        assert value == TEST_FIELD_VAL2
+        assert doc is not None
+        assert doc["_id"] == doc_id
+        assert doc["name"] == "Bob"
+        assert doc["score"] == 5
 
-    def test_read_field_fails(self):
-        """Tries to read an nonexistent field from an existing document."""
-        value = database.read_field(TEST_COLLECTION, TEST_ID, "chungus")
+    def test_write_updates_existing(self, database, doc_id):
+        database.write(
+            TEST_COLLECTION,
+            doc_id,
+            {
+                "name": "Alice",
+                "score": 10,
+            },
+        )
+
+        database.write(
+            TEST_COLLECTION,
+            doc_id,
+            {
+                "name": "Charlie",
+                "score": 42,
+            },
+        )
+
+        doc = database.read(TEST_COLLECTION, doc_id)
+
+        assert doc is not None
+        assert doc["name"] == "Charlie"
+        assert doc["score"] == 42
+
+    def test_read_existing_field(self, database, sample_document):
+        value = database.read_field(
+            TEST_COLLECTION,
+            sample_document,
+            "score",
+        )
+
+        assert value == 10
+
+    def test_read_missing_field(self, database, sample_document):
+        value = database.read_field(
+            TEST_COLLECTION,
+            sample_document,
+            "missing_field",
+        )
+
         assert value is None
 
-    def test_update_field_exists(self):
-        """Tries to update a field within a document."""
-        new_value = TEST_FIELD_VAL
-        database.update_field(TEST_COLLECTION, TEST_ID, TEST_FIELD, new_value)
-        value = database.read_field(TEST_COLLECTION, TEST_ID, TEST_FIELD)
-        assert value is not None
-        assert value == TEST_FIELD_VAL
+    def test_update_existing_field(self, database, sample_document):
+        database.update_field(
+            TEST_COLLECTION,
+            sample_document,
+            "score",
+            25,
+        )
 
-    def test_update_field_new(self):
-        """Tries to update a field that needs to be added to the document."""
-        new_field = "new_field"
-        new_value = TEST_FIELD_VAL
-        database.update_field(TEST_COLLECTION, TEST_ID, new_field, new_value)
-        value = database.read_field(TEST_COLLECTION, TEST_ID, new_field)
-        assert value is not None
-        assert value == TEST_FIELD_VAL
+        value = database.read_field(
+            TEST_COLLECTION,
+            sample_document,
+            "score",
+        )
 
-    def test_add_to_field_exists(self):
-        """Tries to add to a field within a document."""
-        add_val = "!!!"
-        expected = TEST_FIELD_VAL + add_val
-        database.add_to_field(TEST_COLLECTION, TEST_ID, TEST_FIELD, add_val)
-        value = database.read_field(TEST_COLLECTION, TEST_ID, TEST_FIELD)
-        assert value is not None
-        assert value == expected
+        assert value == 25
 
-    def test_add_to_field_exists(self):
-        """Tries to add to a nonexistent field within a document."""
-        new_field = "chungus"
-        add_val = "!!!"
-        database.add_to_field(TEST_COLLECTION, TEST_ID, new_field, add_val)
-        value = database.read_field(TEST_COLLECTION, TEST_ID, new_field)
-        assert value is not None
-        assert value == add_val
+    def test_update_new_field(self, database, sample_document):
+        database.update_field(
+            TEST_COLLECTION,
+            sample_document,
+            "level",
+            7,
+        )
 
-    def test_delete_exists(self):
-        """Deletes when document exists."""
-        result = database.delete(TEST_COLLECTION, TEST_ID)
-        assert result is not None
-        assert result.acknowledged is True
-        assert result.deleted_count > 0
+        value = database.read_field(
+            TEST_COLLECTION,
+            sample_document,
+            "level",
+        )
 
-    def test_delete_fail(self):
-        """Tries to delete when document doesn't exist."""
-        result = database.delete(TEST_COLLECTION, TEST_ID)
-        assert result is not None
-        assert result.acknowledged is True
+        assert value == 7
+
+    def test_increment_existing_field(self, database, sample_document):
+        database.add_to_field(
+            TEST_COLLECTION,
+            sample_document,
+            "score",
+            5,
+        )
+
+        value = database.read_field(
+            TEST_COLLECTION,
+            sample_document,
+            "score",
+        )
+
+        assert value == 15
+
+    def test_increment_new_field(self, database, sample_document):
+        database.add_to_field(
+            TEST_COLLECTION,
+            sample_document,
+            "coins",
+            3,
+        )
+
+        value = database.read_field(
+            TEST_COLLECTION,
+            sample_document,
+            "coins",
+        )
+
+        assert value == 3
+
+    def test_delete_existing_document(self, database, sample_document):
+        result = database.delete(
+            TEST_COLLECTION,
+            sample_document,
+        )
+
+        assert result.acknowledged
+        assert result.deleted_count == 1
+
+        doc = database.read(
+            TEST_COLLECTION,
+            sample_document,
+        )
+
+        assert doc is None
+
+    def test_delete_missing_document(self, database, doc_id):
+        result = database.delete(
+            TEST_COLLECTION,
+            doc_id,
+        )
+
+        assert result.acknowledged
         assert result.deleted_count == 0
 
-    def test_read_field_deleted(self):
-        """Tries to read a field from a nonexistent document."""
-        data = database.read_field(TEST_COLLECTION, TEST_ID, TEST_FIELD)
-        assert data is None
+    def test_read_deleted_document(self, database, sample_document):
+        database.delete(
+            TEST_COLLECTION,
+            sample_document,
+        )
 
-    def test_update_field_deleted(self):
-        """Tries to update a field within a nonexistent document."""
-        new_value = TEST_FIELD_VAL2
-        database.update_field(TEST_COLLECTION, TEST_ID, TEST_FIELD, new_value)
-        value = database.read_field(TEST_COLLECTION, TEST_ID, TEST_FIELD)
+        value = database.read_field(
+            TEST_COLLECTION,
+            sample_document,
+            "score",
+        )
+
         assert value is None
+
+    def test_update_missing_document(self, database, doc_id):
+        database.update_field(
+            TEST_COLLECTION,
+            doc_id,
+            "score",
+            99,
+        )
+
+        doc = database.read(
+            TEST_COLLECTION,
+            doc_id,
+        )
+
+        assert doc is None
+
+    def test_read_many(self, database):
+        for i in range(5):
+            database.write(
+                TEST_COLLECTION,
+                f"user-{i}",
+                {
+                    "value": i,
+                },
+            )
+
+        docs = database.read_many(TEST_COLLECTION)
+
+        assert len(docs) == 5
+        assert all("value" in doc for doc in docs)
+
+    def test_update_raw(self, database, sample_document):
+        database.update_raw(
+            TEST_COLLECTION,
+            sample_document,
+            {
+                "$set": {
+                    "score": 100,
+                    "rank": "gold",
+                }
+            },
+        )
+
+        doc = database.read(
+            TEST_COLLECTION,
+            sample_document,
+        )
+
+        assert doc["score"] == 100
+        assert doc["rank"] == "gold"

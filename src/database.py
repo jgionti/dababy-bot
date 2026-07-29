@@ -1,109 +1,149 @@
 import os
-from typing import Any, List
+from typing import Any, Optional
 
 import pymongo
+from pymongo.collection import Collection
+from pymongo.database import Database as MongoDatabase
+from pymongo.results import DeleteResult, UpdateResult
 
 
 class Database:
-    """Class for read/write operations to the bot's database.
+    """Wrapper for MongoDB read/write operations.
 
-    This database uses MongoDB. 
-    It follows the hierarchy: Client > Database > Collection > Document
-
+    MongoDB hierarchy:
+        Client -> Database -> Collection -> Document
     Each document has a _id used to identify itself.
     """
 
-    COLLECTION_MEMBERS="members"
-    COLLECTION_EVENTS="events"
-    COLLECTION_GOLDEN_MOMENTS="golden_moments"
+    COLLECTION_MEMBERS = "members"
+    COLLECTION_EVENTS = "events"
+    COLLECTION_GOLDEN_MOMENTS = "golden_moments"
+
+    _client = pymongo.MongoClient(os.environ["MONGO_URL"])
 
     def __init__(self):
-        """Instantiates a Database class and creates a connection to
-        the main database.
+        self.db: MongoDatabase = self._client["main"]
+
+    def _collection(self, name: str) -> Collection:
+        return self.db[name]
+
+    def write(
+        self,
+        collection: str,
+        id: str,
+        data: Optional[dict[str, Any]] = None,
+    ) -> UpdateResult:
+        """Insert or update a document.
+
+        Uses MongoDB's upsert functionality so only one database
+        operation is required.
         """
-        url = os.environ.get("MONGO_URL")
-        client = pymongo.MongoClient(url)
-        self.db = client["main"]
+        return self._collection(collection).update_one(
+            {"_id": id},
+            {"$set": data or {}},
+            upsert=True,
+        )
 
-    def write(self, collection: str, id: str = "", data = {}):
-        """Attempts to write a document into a collection.
+    def read(
+        self,
+        collection: str,
+        id: Optional[str] = None,
+        query: Optional[dict[str, Any]] = None,
+    ) -> Optional[dict]:
+        """Read a single document."""
+        q = query.copy() if query else {}
 
-        This function will try updating the data if a document of the
-        same id already exists. Otherwise, a new document is added.
+        if id is not None:
+            q["_id"] = id
+
+        return self._collection(collection).find_one(q)
+
+    def delete(
+        self,
+        collection: str,
+        id: Optional[str] = None,
+        query: Optional[dict[str, Any]] = None,
+    ) -> DeleteResult:
+        """Delete a single document."""
+        q = query.copy() if query else {}
+
+        if id is not None:
+            q["_id"] = id
+
+        return self._collection(collection).delete_one(q)
+
+    def read_field(
+        self,
+        collection: str,
+        id: str,
+        field: str,
+    ) -> Any:
+        """Read a single field from a document.
+
+        Uses projection so MongoDB only returns the requested field.
         """
-        col = self.db[collection]
-        if id != "":
-            doc = {"_id" : id}
-            doc.update(data)
-        # Document exists in collection
-        query = {"_id" : id}
-        if col.find_one(query) is not None:
-            doc = {"$set" : doc}
-            col.update_one(query, doc)
-        # Document must be inserted first
-        else:
-            col.insert_one(doc)
+        doc = self._collection(collection).find_one(
+            {"_id": id},
+            {field: 1},
+        )
 
-    def read(self, collection: str, id: str = "", query = {}):
-        """Attempts to read data from a collection.
+        if doc is None:
+            return None
 
-        Returns: Dict[id, value]
+        return doc.get(field)
+
+    def update_field(
+        self,
+        collection: str,
+        id: str,
+        field: str,
+        value: Any,
+    ) -> UpdateResult:
+        """Atomically update one field."""
+        return self._collection(collection).update_one(
+            {"_id": id},
+            {"$set": {field: value}},
+        )
+
+    def add_to_field(
+        self,
+        collection: str,
+        id: str,
+        field: str,
+        amount: int | float,
+    ) -> UpdateResult:
+        """Atomically increment a numeric field.
+
+        Eliminates the previous read-modify-write sequence.
         """
-        col = self.db[collection]
-        if id != "":
-            q = {"_id" : id}
-            q.update(query)
-        return col.find_one(q)
+        return self._collection(collection).update_one(
+            {"_id": id},
+            {"$inc": {field: amount}},
+        )
 
-    def delete(self, collection: str, id: str = "", query = {}):
-        """Attempts to delete data from a collection.
-        
-        Returns: DeleteResult
-        """
-        col = self.db[collection]
-        if id != "":
-            q = {"_id" : id}
-            q.update(query)
-        return col.delete_one(q)
+    def update_raw(
+        self,
+        collection: str,
+        id: str,
+        payload: dict[str, Any],
+        upsert: bool = True,
+    ) -> UpdateResult:
+        """Execute an arbitrary MongoDB update payload."""
+        return self._collection(collection).update_one(
+            {"_id": id},
+            payload,
+            upsert=upsert,
+        )
 
-    def read_field(self, collection: str, id: str, field: str):
-        """Attempts to read a field from a document.
-
-        Returns: Optional[Any]
-        """
-        d = self.read(collection, id)
-        if d is not None and field in d:
-            return d[field]
-        return None
-        
-    def update_field(self, collection: str, id: str, field: str, value):
-        """Attempts to update a field within a document.
-        
-        Does nothing if the document is not found.
-        """
-        d = self.read(collection, id)
-        if d is not None:
-            d[field] = value
-            self.write(collection, id, d)
-
-    def add_to_field(self, collection: str, id: str, field: str, add):
-        """Attempts to add to a field within a document.
-        
-        Creates field if the field is not found.
-        """
-        val = self.read_field(collection, id, field)
-        if val is None:
-            self.update_field(collection, id, field, add)
-        else:
-            self.update_field(collection, id, field, val + add)
-
-    def update_raw(self, collection: str, id: str, payload: dict):
-        col = self.db[collection]
-        query = {"_id" : id}
-        return col.update_one(query, payload, upsert=True)
-
-    def read_many(self, collection: str, query = {}) -> List[dict]:
-        col = self.db[collection]
-        return col.find().limit(100).to_list()
-
-    # For future: can add write_many should the need arise
+    def read_many(
+        self,
+        collection: str,
+        query: Optional[dict[str, Any]] = None,
+        limit: int = 100,
+    ) -> list[dict]:
+        """Read multiple documents."""
+        return list(
+            self._collection(collection)
+            .find(query or {})
+            .limit(limit)
+        )
