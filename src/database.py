@@ -15,6 +15,7 @@ class Database:
 
     COLLECTION_MEMBERS="members"
     COLLECTION_EVENTS="events"
+    COLLECTION_GOLDEN_MOMENTS="golden_moments"
 
     def __init__(self):
         """Instantiates a Database class and creates a connection to
@@ -95,6 +96,11 @@ class Database:
             self.update_field(collection, id, field, add)
         else:
             self.update_field(collection, id, field, val + add)
+
+    def update_raw(self, collection: str, id: str, payload: dict):
+        col = self.db[collection]
+        query = {"_id" : id}
+        return col.update_one(query, payload, upsert=True)
 
     def read_many(self, collection: str, query = {}) -> List[dict]:
         col = self.db[collection]

@@ -1,9 +1,11 @@
 import os
 
+IS_BETA = os.environ.get("BETA") is not None
+
 GUILD_IDS = [
     # BETA
     1167228972443123772,
-] if os.environ.get("BETA") is not None else [
+] if IS_BETA else [
     # PROD
     730196305124655176,
 ]
