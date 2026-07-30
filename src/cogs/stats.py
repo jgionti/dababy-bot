@@ -1,3 +1,5 @@
+import datetime
+
 import discord
 from discord import app_commands
 from discord.ext import commands
@@ -18,6 +20,7 @@ class Stats(commands.Cog):
 
     GOLDEN_REACTION_THRESHOLD = 3 if not IS_BETA else 1
     GOLDEN_MOMENTS_CHANNEL_NAME = "golden-moments"
+    GOLDEN_MESSAGE_WINDOW = datetime.timedelta(days=7)
 
     def __init__(self, bot: commands.Bot):
         self.bot: DaBabyBot = bot
@@ -65,6 +68,8 @@ class Stats(commands.Cog):
         if golden_moments_channel is None or channel.id == golden_moments_channel.id:
             return
         if reaction is None or reaction.count < self.GOLDEN_REACTION_THRESHOLD:
+            return
+        if datetime.datetime.now(datetime.UTC) - message.created_at >= self.GOLDEN_MESSAGE_WINDOW:
             return
 
         if self.bot.db.read(Database.COLLECTION_GOLDEN_MOMENTS, str(message.id), {}):
