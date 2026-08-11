@@ -87,7 +87,7 @@ class MaxIsOnlineEvent(Event):
 
         # Create Max member objects
         self.max_member: discord.Member = interaction.guild.get_member(MAX_ID)
-        if self.max_member.status == None:
+        if self.max_member and self.max_member.status == None:
             self.max_member.status = self.max_member.desktop_status
         # Start event and post current status
         self.post.change_interval(minutes=self.interval)
@@ -99,7 +99,7 @@ class MaxIsOnlineEvent(Event):
 
     async def end(self, interaction, args):
         self.post.cancel()
-        await self.max_thread.archive()
+        await self.max_thread.edit(archived=True)
         self.max_thread = None
         self.max_member = None
         await interaction.response.send_message("\N{SEE-NO-EVIL MONKEY}")
