@@ -18,7 +18,7 @@ from src.database import Database
 
 class Stats(commands.Cog):
 
-    GOLDEN_REACTION_THRESHOLD = 3 if not IS_BETA else 1
+    GOLDEN_REACTION_THRESHOLD = 4 if not IS_BETA else 1
     GOLDEN_MOMENTS_CHANNEL_NAME = "golden-moments"
     GOLDEN_MESSAGE_WINDOW = datetime.timedelta(days=7)
 
